@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-10-12 16:53:39",
+  "config": {
+    "total_timesteps": 100000,
+    "domain_randomization": true,
+    "eval_frequency": 5000,
+    "n_eval_episodes": 10
+  },
+  "training": {
+    "best_mean_reward": 1676.6949857999996,
+    "convergence_timestep": null
+  },
+  "test": {
+    "avg_reward": 403.4150085449219,
+    "std_reward": 118.65750885009766,
+    "avg_cleared": 231.5,
+    "total_cleared": 2315,
+    "episodes": [
+      430.5499572753906,
+      380.3499755859375,
+      380.85003662109375,
+      179.00003051757812,
+      520.800048828125,
+      399.2000427246094,
+      562.5,
+      375.39996337890625,
+      558.900146484375,
+      246.59999084472656
+    ]
+  },
+  "files": {
+    "best_model": "../models/hardware_ppo\\best_model.zip",
+    "final_model": "../models/hardware_ppo\\hardware_ppo_final_20251012_164818.zip",
+    "vecnormalize": "../models/hardware_ppo\\hardware_ppo_final_20251012_164818_vecnormalize.pkl",
+    "logs": "../logs/hardware_ppo",
+    "training_plot": "../visualizations\\training_plot_20251012_164818.png"
+  }
+}

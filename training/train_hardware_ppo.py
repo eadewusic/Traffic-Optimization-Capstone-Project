@@ -9,12 +9,15 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.results_plotter import load_results, ts2xy
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 import sys
+import json
 
-# Define the project root (one level up from 'training')
+# Define the project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Add the project root to the system path so Python can find 'environments'
@@ -32,10 +35,126 @@ N_EVAL_EPISODES = 10      # Number of episodes per evaluation
 
 MODELS_DIR = "../models/hardware_ppo"
 LOGS_DIR = "../logs/hardware_ppo"
+RESULTS_DIR = "../results"
+VISUALIZATIONS_DIR = "../visualizations"
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(VISUALIZATIONS_DIR, exist_ok=True)
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+# PLOTTING FUNCTIONS
+def plot_training_results(log_path, save_path, timestamp):
+    """Generate and save training visualization plots"""
+    try:
+        # Load training results from monitor files
+        results = load_results(log_path)
+        
+        # Create figure with 4 subplots
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        fig.suptitle(f'Training Results - {timestamp}', fontsize=16)
+        
+        # 1. Episode Rewards Over Time
+        x, y = ts2xy(results, 'timesteps')
+        axes[0, 0].plot(x, y, alpha=0.6)
+        axes[0, 0].set_xlabel('Timesteps')
+        axes[0, 0].set_ylabel('Episode Reward')
+        axes[0, 0].set_title('Episode Rewards Over Time')
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # 2. Moving Average of Rewards (smoothed)
+        window = 50
+        if len(y) >= window:
+            moving_avg = np.convolve(y, np.ones(window)/window, mode='valid')
+            axes[0, 1].plot(x[window-1:], moving_avg, color='orange', linewidth=2)
+            axes[0, 1].set_xlabel('Timesteps')
+            axes[0, 1].set_ylabel('Moving Average Reward')
+            axes[0, 1].set_title(f'Smoothed Rewards (window={window})')
+            axes[0, 1].grid(True, alpha=0.3)
+        
+        # 3. Episode Lengths
+        if 'l' in results.columns:
+            axes[1, 0].plot(results['l'], alpha=0.6, color='green')
+            axes[1, 0].set_xlabel('Episodes')
+            axes[1, 0].set_ylabel('Episode Length')
+            axes[1, 0].set_title('Episode Lengths')
+            axes[1, 0].grid(True, alpha=0.3)
+        
+        # 4. Cumulative Reward
+        cumulative_reward = np.cumsum(y)
+        axes[1, 1].plot(x, cumulative_reward, color='purple', linewidth=2)
+        axes[1, 1].set_xlabel('Timesteps')
+        axes[1, 1].set_ylabel('Cumulative Reward')
+        axes[1, 1].set_title('Cumulative Reward Over Training')
+        axes[1, 1].grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        # Save figure
+        plot_path = os.path.join(save_path, f"training_plot_{timestamp}.png")
+        plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        return plot_path
+    
+    except Exception as e:
+        print(f"Error creating training plot: {e}")
+        return None
+
+
+def save_training_summary(results_dict, filename="training_summary.json"):
+    """Save training results to JSON and Markdown"""
+    
+    # Save JSON
+    json_path = os.path.join(RESULTS_DIR, filename)
+    
+    with open(json_path, 'w') as f:
+        json.dump(results_dict, f, indent=2)
+    
+    print(f"\nResults saved to: {json_path}")
+    
+    # Also save as Markdown for easy reading
+    md_path = json_path.replace('.json', '.md')
+    with open(md_path, 'w') as f:
+        f.write(f"# Training Summary - {results_dict['timestamp']}\n\n")
+        
+        f.write("## Configuration\n")
+        f.write(f"- Total timesteps: {results_dict['config']['total_timesteps']:,}\n")
+        f.write(f"- Domain randomization: {results_dict['config']['domain_randomization']}\n")
+        f.write(f"- Eval frequency: {results_dict['config']['eval_frequency']:,}\n\n")
+        
+        f.write("## Training Performance\n")
+        f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n")
+        if results_dict['training'].get('convergence_timestep'):
+            f.write(f"- Convergence timestep: {results_dict['training']['convergence_timestep']:,}\n")
+        f.write("\n")
+        
+        # Write test results if they exist
+        if 'test' in results_dict:
+            f.write("## Quick Test Results (10 episodes)\n")
+            f.write(f"- Average reward: {results_dict['test']['avg_reward']:.1f}\n")
+            f.write(f"- Std deviation: {results_dict['test']['std_reward']:.1f}\n")
+            f.write(f"- Average cleared: {results_dict['test']['avg_cleared']:.0f} vehicles\n")
+            f.write(f"- Total cleared: {results_dict['test']['total_cleared']} vehicles\n\n")
+            
+            f.write("## Episode Details\n")
+            for i, reward in enumerate(results_dict['test']['episodes'], 1):
+                f.write(f"- Episode {i}: {reward:.1f}\n")
+            f.write("\n")
+        
+        f.write("## Model Files\n")
+        f.write(f"- Best model: `{results_dict['files']['best_model']}`\n")
+        f.write(f"- Final model: `{results_dict['files']['final_model']}`\n")
+        f.write(f"- VecNormalize: `{results_dict['files']['vecnormalize']}`\n")
+        f.write(f"- Logs: `{results_dict['files']['logs']}`\n")
+        
+        if results_dict['files'].get('training_plot'):
+            f.write(f"- Training plot: `{results_dict['files']['training_plot']}`\n")
+    
+    print(f"Summary saved to: {md_path}")
+
 
 # ENVIRONMENT FACTORY
 def make_env(domain_randomization=True, seed=None):
@@ -47,11 +166,13 @@ def make_env(domain_randomization=True, seed=None):
             max_arrival_rate=3,
             domain_randomization=domain_randomization
         )
-        env = Monitor(env)  # Wrap for logging
+        # Wrap with Monitor for logging (required for plotting)
+        env = Monitor(env, filename=os.path.join(LOGS_DIR, f"monitor_{timestamp}"))
         if seed is not None:
             env.reset(seed=seed)
         return env
     return _init
+
 
 # PRINT HEADER
 print(" TRAINING PPO FOR HARDWARE DEPLOYMENT")
@@ -89,7 +210,7 @@ eval_env = VecNormalize(
     clip_obs=10.0
 )
 
-print(" Environments created")
+print("Environments created")
 print(f"  Training: With domain randomization")
 print(f"  Evaluation: Without domain randomization (for consistent comparison)")
 print()
@@ -120,7 +241,7 @@ checkpoint_callback = CheckpointCallback(
 
 callbacks = [eval_callback, checkpoint_callback]
 
-print(" Callbacks configured")
+print("Callbacks configured")
 print()
 
 # CREATE PPO MODEL
@@ -169,7 +290,7 @@ model = PPO(
     device='auto'  # Use GPU if available, else CPU
 )
 
-print(" Model created successfully")
+print("Model created successfully")
 print(f"\nModel details:")
 print(f"  Policy: MLP (Multi-Layer Perceptron)")
 print(f"  Architecture: [4 inputs] → [64] → [64] → [4 outputs]")
@@ -193,23 +314,25 @@ try:
     
     # Save final model
     final_model_path = os.path.join(MODELS_DIR, f"hardware_ppo_final_{timestamp}")
+    vecnormalize_path = final_model_path + "_vecnormalize.pkl"
     model.save(final_model_path)
-    train_env.save(final_model_path + "_vecnormalize.pkl")
+    train_env.save(vecnormalize_path)
     
-    print(f"\n Final model saved:")
+    print(f"\nFinal model saved:")
     print(f"  Model: {final_model_path}.zip")
-    print(f"  VecNormalize: {final_model_path}_vecnormalize.pkl")
+    print(f"  VecNormalize: {vecnormalize_path}")
     
 except KeyboardInterrupt:
-    print("\n\n Training interrupted by user (Ctrl+C)")
+    print("\n\nTraining interrupted by user (Ctrl+C)")
     interrupt_path = os.path.join(MODELS_DIR, f"hardware_ppo_interrupted_{timestamp}")
+    vecnormalize_path = interrupt_path + "_vecnormalize.pkl"
     model.save(interrupt_path)
-    train_env.save(interrupt_path + "_vecnormalize.pkl")
-    print(f" Model saved to: {interrupt_path}.zip")
+    train_env.save(vecnormalize_path)
+    print(f"Model saved to: {interrupt_path}.zip")
     sys.exit(0)
 
 except Exception as e:
-    print(f"\n Error during training: {e}")
+    print(f"\nError during training: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -252,11 +375,58 @@ for episode in range(10):
     
     print(f"Episode {episode+1:2d}: Reward={episode_reward:7.1f}, Cleared={int(episode_cleared):3d} cars")
 
+avg_reward = total_reward / 10
+std_reward = np.std(episode_rewards)
+avg_cleared = total_cleared / 10
+
 print(f"\nTest Results:")
-print(f"  Average reward:  {total_reward/10:7.1f}")
-print(f"  Reward std dev:  {np.std(episode_rewards):7.1f}")
-print(f"  Average cleared: {int(total_cleared/10):3d} vehicles")
+print(f"  Average reward:  {avg_reward:7.1f}")
+print(f"  Reward std dev:  {std_reward:7.1f}")
+print(f"  Average cleared: {int(avg_cleared):3d} vehicles")
 print(f"  Total cleared:   {int(total_cleared):3d} vehicles")
+
+# GENERATE TRAINING PLOTS
+print("\n GENERATING TRAINING PLOTS")
+
+training_plot_path = plot_training_results(LOGS_DIR, VISUALIZATIONS_DIR, timestamp)
+if training_plot_path:
+    print(f"Training plot saved to: {training_plot_path}")
+
+# SAVE TRAINING SUMMARY
+print("\n SAVING TRAINING SUMMARY")
+
+# Get best evaluation results from callback
+best_mean_reward = eval_callback.best_mean_reward if hasattr(eval_callback, 'best_mean_reward') else 0.0
+
+training_results = {
+    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "config": {
+        "total_timesteps": TOTAL_TIMESTEPS,
+        "domain_randomization": True,
+        "eval_frequency": EVAL_FREQ,
+        "n_eval_episodes": N_EVAL_EPISODES
+    },
+    "training": {
+        "best_mean_reward": float(best_mean_reward),
+        "convergence_timestep": None  # Could be tracked with custom callback
+    },
+    "test": {
+        "avg_reward": float(avg_reward),
+        "std_reward": float(std_reward),
+        "avg_cleared": float(avg_cleared),
+        "total_cleared": int(total_cleared),
+        "episodes": [float(r) for r in episode_rewards]
+    },
+    "files": {
+        "best_model": os.path.join(MODELS_DIR, "best_model.zip"),
+        "final_model": final_model_path + ".zip",
+        "vecnormalize": vecnormalize_path,
+        "logs": LOGS_DIR,
+        "training_plot": training_plot_path
+    }
+}
+
+save_training_summary(training_results, f"training_summary_{timestamp}.json")
 
 # TRAINING SUMMARY
 print("\n TRAINING SUMMARY")
@@ -265,3 +435,6 @@ print(f"\nFiles saved:")
 print(f"  Best model:  {MODELS_DIR}/best_model.zip")
 print(f"  Final model: {final_model_path}.zip")
 print(f"  Logs:        {LOGS_DIR}/")
+if training_plot_path:
+    print(f"  Training plot: {training_plot_path}")
+print(f"\nTraining complete!")
