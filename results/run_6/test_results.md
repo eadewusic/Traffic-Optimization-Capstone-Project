@@ -64,3 +64,7 @@
 ## Visualizations
 - Comparison plot: `../visualizations\run_6\controller_comparison.png`
 - Scenario heatmap: `../visualizations\run_6\scenario_heatmap.png`
+
+## Justification
+
+The PPO agent, trained with a carefully balanced reward function emphasizing both throughput optimization and queue management, demonstrates superior performance across all tested traffic scenarios. Comparative evaluation shows the learned policy achieves 382% higher reward, 59% greater throughput, and 92% reduced queue lengths compared to greedy baseline heuristics, while maintaining perfect win rate (5/5 scenarios). This validates the efficacy of deep reinforcement learning for adaptive traffic control in resource-constrained environments.
