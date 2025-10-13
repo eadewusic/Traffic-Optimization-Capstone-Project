@@ -1,11 +1,16 @@
 """
 Simplified Button Traffic Environment for Hardware Deployment
-Adapted from TrafficJunctionEnv for 4-button prototype
+FIXED VERSION 3 - Properly balanced reward function
 
-Key Changes from Original:
-  - State: 113 dims to 4 dims (just queue counts)
-  - Actions: 9 complex to 4 simple (which lane gets green)
-  - Removed: Road grids, timers, light states (hardware doesn't have these)
+Key Changes from V2 (which failed):
+  - Reward rebalanced: penalties no longer dominate
+  - Simplified components: removed conflicting objectives
+  - Focus on core trade-off: throughput vs queue management
+  
+Changes from original (Run 1):
+  - State: 113 dims → 4 dims (just queue counts)
+  - Actions: 9 complex → 4 simple (which lane gets green)
+  - Removed: Road grids, timers, light states
   - Added: Domain randomization for sim2real transfer
 """
 
@@ -16,7 +21,7 @@ from typing import Dict, Optional
 from enum import Enum
 
 class TrafficDirection(Enum):
-    """Keep same directions as original environment"""
+    """Traffic directions"""
     NORTH = 0
     SOUTH = 1
     EAST = 2
@@ -25,7 +30,6 @@ class TrafficDirection(Enum):
 class SimpleButtonTrafficEnv(gym.Env):
     """
     Hardware-matching environment for button/LED prototype.
-    Simplified from original TrafficJunctionEnv.
     
     State Space (4 dimensions):
         - Queue counts for 4 directions: [North, South, East, West]
@@ -37,10 +41,11 @@ class SimpleButtonTrafficEnv(gym.Env):
         - 2: Give green to East
         - 3: Give green to West
     
-    Reward:
-        - Simplified from original complex reward
-        - Focus: Minimize total waiting vehicles
-        - Bonus: Clear congested lanes
+    Reward (BALANCED VERSION):
+        - Core: Throughput (+1.5 per car) vs Queue penalty (-0.25 per car)
+        - Ratio: 6:1 (was 13:1 in Run 1, 2.5:1 in Run 2)
+        - Bonus: Attack longest queue (+3.0)
+        - Penalty: Severe imbalance (-2.0 to -5.0)
     """
     
     metadata = {'render.modes': ['human']}
@@ -52,55 +57,55 @@ class SimpleButtonTrafficEnv(gym.Env):
                  domain_randomization=True):
         """
         Args:
-            max_queue_length: Max vehicles per lane (same as original)
+            max_queue_length: Max vehicles per lane
             cars_cleared_per_cycle: Vehicles cleared per green cycle
             max_arrival_rate: Max random arrivals per lane per step
             domain_randomization: Enable for sim2real robustness
         """
         super().__init__()
         
-        # Parameters (adapted from original environment)
+        # Parameters
         self.max_queue_length = max_queue_length
         self.cars_cleared_per_cycle = cars_cleared_per_cycle
         self.max_arrival_rate = max_arrival_rate
         self.domain_randomization = domain_randomization
         
-        # State: Just 4 queue counts (MUCH simpler than original 113 dims)
+        # State: 4 queue counts (simplified from original 113 dims)
         self.observation_space = spaces.Box(
             low=0.0, 
             high=1.0, 
-            shape=(4,),  # Was 113 in original!
+            shape=(4,),
             dtype=np.float32
         )
         
-        # Action: Select 1 of 4 lanes (simplified from original 9 actions)
+        # Action: Select 1 of 4 lanes
         self.action_space = spaces.Discrete(4)
         
-        # Lane names (same as original)
+        # Lane names
         self.lane_names = ['North', 'South', 'East', 'West']
         
         # Internal state
         self.queues = np.zeros(4, dtype=np.float32)
         self.current_step = 0
-        self.max_steps = 200  # Episode length
+        self.max_steps = 200
         
         # Domain randomization parameters
         self.clearance_rate = cars_cleared_per_cycle
         self.arrival_rate = max_arrival_rate
         
-        # Performance tracking (similar to original)
+        # Performance tracking
         self.total_cars_cleared = 0
         self.total_wait_time = 0
-        self.vehicles_processed = 0  # Same as original tracking
+        self.vehicles_processed = 0
         
-        # Time simulation (simplified from original)
-        self.current_time = 8.0  # Start at 8 AM like original
+        # Time simulation
+        self.current_time = 8.0  # Start at 8 AM
         
     def reset(self, seed=None, options=None):
-        """Reset environment (similar to original but simplified)"""
+        """Reset environment"""
         super().reset(seed=seed)
         
-        # Initialize with random queue lengths (like original)
+        # Initialize with random queue lengths
         self.queues = self.np_random.integers(0, 10, size=4).astype(np.float32)
         
         self.current_step = 0
@@ -113,7 +118,7 @@ class SimpleButtonTrafficEnv(gym.Env):
         if self.domain_randomization:
             self._randomize_parameters()
         
-        # Return normalized state (like original but simpler)
+        # Return normalized state
         obs = self.queues / self.max_queue_length
         info = {
             'queues': self.queues.copy(),
@@ -138,7 +143,7 @@ class SimpleButtonTrafficEnv(gym.Env):
     
     def step(self, action):
         """
-        Execute one step (simplified from original complex step)
+        Execute one step
         
         Args:
             action: Integer 0-3 indicating which lane gets green
@@ -152,26 +157,26 @@ class SimpleButtonTrafficEnv(gym.Env):
         """
         assert self.action_space.contains(action)
         
-        # Store previous queue for reward calculation
-        prev_total_queue = np.sum(self.queues)
+        # Store previous queues for reward calculation
+        prev_queues = self.queues.copy()
         
         # 1. DEQUEUE: Clear cars from selected lane
         cars_cleared = min(self.clearance_rate, self.queues[action])
         self.queues[action] = max(0, self.queues[action] - cars_cleared)
         self.total_cars_cleared += cars_cleared
-        self.vehicles_processed += cars_cleared  # Same as original tracking
+        self.vehicles_processed += cars_cleared
         
-        # 2. ARRIVALS: Generate traffic based on time patterns (from original)
+        # 2. ARRIVALS: Generate traffic based on time patterns
         self._generate_traffic()
         
         # 3. CLIP: Ensure queues don't exceed max
         self.queues = np.clip(self.queues, 0, self.max_queue_length)
         
-        # 4. CALCULATE REWARD (simplified from original complex reward)
-        reward = self._calculate_reward(action, prev_total_queue, cars_cleared)
+        # 4. CALCULATE REWARD (FIXED VERSION 3)
+        reward = self._calculate_reward(action, prev_queues, cars_cleared)
         
-        # 5. UPDATE TIME (like original: 5 seconds per step)
-        self.current_time += 5/3600  # 5 seconds in hours
+        # 5. UPDATE TIME (5 seconds per step)
+        self.current_time += 5/3600
         if self.current_time >= 24:
             self.current_time -= 24
         
@@ -179,8 +184,8 @@ class SimpleButtonTrafficEnv(gym.Env):
         self.current_step += 1
         self.total_wait_time += np.sum(self.queues)
         
-        # 7. CHECK TERMINATION (simplified from original)
-        terminated = False  # Continuous traffic simulation
+        # 7. CHECK TERMINATION
+        terminated = False
         truncated = self.current_step >= self.max_steps
         
         # 8. PREPARE OUTPUT
@@ -199,12 +204,12 @@ class SimpleButtonTrafficEnv(gym.Env):
     
     def _generate_traffic(self):
         """
-        Generate traffic based on time-of-day (FROM ORIGINAL ENVIRONMENT)
-        Keeps same Rwanda traffic patterns
+        Generate traffic based on time-of-day
+        Keeps same Rwanda traffic patterns from original
         """
         hour = int(self.current_time)
         
-        # Same rush hour patterns as original
+        # Rush hour patterns
         if 7 <= hour <= 9 or 17 <= hour <= 19:  # Rush hours
             base_arrival_rate = 0.8
         elif 12 <= hour <= 14:  # Lunch hour
@@ -220,94 +225,82 @@ class SimpleButtonTrafficEnv(gym.Env):
                 arrivals = self.np_random.integers(0, int(self.arrival_rate) + 1)
                 self.queues[i] += arrivals
     
-    def _calculate_reward(self, action, prev_total_queue, cars_cleared):
-        """        
-        Goal: Positive rewards for good performance, negative for bad
-                
-        New design:
-        - Base reward: +1 per car cleared (direct throughput measure)
-        - Queue penalty: -0.1 per car waiting (small ongoing cost)
-        - Efficiency bonus: +5 for keeping all queues short
-        - Congestion penalty: Only for extreme cases
+    def _calculate_reward(self, action, prev_queues, cars_cleared):
+        """
+        BALANCED REWARD FUNCTION (Version 3)
         
-        Expected outcomes:
-        - Good agent: +50 to +100 per episode (positive!)
-        - Bad agent: -200 to -500 per episode (negative)
-        - Random agent: Around 0 (neutral)
+        Goal: PPO should prioritize attacking congested lanes while maintaining balance
+        
+        Design Philosophy:
+        - Simple is better: Only 4 components (was 6)
+        - Rewards should dominate penalties in normal operation
+        - Penalties kick in for bad behavior (severe imbalance, starvation)
+        
+        Reward Ratio: 6:1 (throughput:queue)
+        - Run 1: 13:1 → PPO ignored queues
+        - Run 2: 2.5:1 → PPO over-prioritized queues
+        - Run 3: 6:1 → Balanced middle ground
         """
         
         current_total_queue = np.sum(self.queues)
         
-        # 1. PRIMARY REWARD: Throughput (Always Positive!)
-        # Reward every car that successfully clears the intersection
-        # This is the MAIN measure of success
-        throughput_reward = cars_cleared * 2.0  # +2 per car cleared
+        # 1. THROUGHPUT REWARD (Main positive signal)
+        # Increased from 1.0 to 1.5 for stronger positive signal
+        throughput_reward = cars_cleared * 1.5
         
-        # 2. QUEUE MAINTENANCE COST (Small Penalty)
-        # Small penalty for cars waiting (cost of congestion)
-        # Much smaller than the throughput reward
-        waiting_penalty = current_total_queue * -0.15
+        # 2. QUEUE PENALTY (Moderate, not dominating)
+        # Reduced from -0.4 to -0.25 so it doesn't overwhelm throughput
+        waiting_penalty = current_total_queue * -0.25
         
-        # 3. EFFICIENCY BONUS (Positive for Good Flow)
-        # Bonus for maintaining good flow across all lanes
-        if current_total_queue <= 5:
-            efficiency_bonus = 10.0  # Excellent flow!
-        elif current_total_queue <= 10:
-            efficiency_bonus = 5.0   # Good flow
-        elif current_total_queue <= 15:
-            efficiency_bonus = 0.0   # Acceptable
-        else:
-            efficiency_bonus = -5.0  # Only penalize extreme congestion
-        
-        # 4. LANE BALANCE BONUS (Encourage Fairness)
-        # Bonus for keeping all lanes relatively balanced
-        # Prevents ignoring any single lane
-        queue_std = np.std(self.queues)
-        if queue_std < 2.0:
-            balance_bonus = 3.0  # Very balanced
-        elif queue_std < 4.0:
-            balance_bonus = 1.0  # Reasonably balanced
-        else:
-            balance_bonus = 0.0  # Unbalanced (no penalty, just no bonus)
-        
-        # 5. ACTION QUALITY BONUS
-        # Bonus for clearing the busiest lane
+        # 3. ACTION QUALITY: Reward attacking the longest queue
         if cars_cleared > 0:
-            # Was this lane relatively congested?
-            lane_congestion = self.queues[action] / (np.sum(self.queues) + 1e-6)
-            if lane_congestion > 0.3:  # Cleared a busy lane
-                action_quality_bonus = 2.0
+            max_queue_idx = int(np.argmax(prev_queues))
+            
+            if action == max_queue_idx:
+                # Perfect! Attacked the most congested lane
+                action_quality = +3.0
+            elif prev_queues[action] >= np.max(prev_queues) * 0.7:
+                # Good enough, attacked a busy lane
+                action_quality = +1.0
             else:
-                action_quality_bonus = 0.5
+                # Suboptimal: wasted capacity on a short queue
+                action_quality = -1.0
         else:
-            action_quality_bonus = 0.0
+            # Tried to clear from empty lane
+            action_quality = -2.0
         
-        # TOTAL REWARD CALCULATION
+        # 4. QUEUE IMBALANCE PENALTY (Only for severe cases)
+        # Only penalize when imbalance is really bad
+        queue_std = np.std(self.queues)
+        
+        if queue_std < 3.0:
+            # Good balance across lanes
+            imbalance_penalty = 0.0
+        elif queue_std < 6.0:
+            # Moderate imbalance, small penalty
+            imbalance_penalty = -1.0
+        elif queue_std < 10.0:
+            # Bad imbalance
+            imbalance_penalty = -2.5
+        else:
+            # Severe imbalance (one lane starved while others overflow)
+            imbalance_penalty = -5.0
+        
+        # TOTAL REWARD
         total_reward = (
-            throughput_reward +      # Main positive component
-            waiting_penalty +        # Small negative component
-            efficiency_bonus +       # Conditional bonus/penalty
-            balance_bonus +          # Fairness bonus
-            action_quality_bonus     # Smart decision bonus
+            throughput_reward +      # +7.5 typical (5 cars * 1.5)
+            waiting_penalty +        # -5.0 typical (20 queue * -0.25)
+            action_quality +         # +3.0 or -1.0
+            imbalance_penalty        # 0 to -5.0
         )
         
-        # EXPECTED RANGES (for validation)
-        # Good episode (237 cars cleared, avg 10 waiting):
-        #   Throughput:  237 * 2.0 = +474
-        #   Waiting:     10 * -0.15 * 50 steps = -75
-        #   Bonuses:     ~5 * 50 = +250
-        #   Total:       ~+649 (POSITIVE!)
-        #
-        # Bad episode (150 cars cleared, avg 20 waiting):
-        #   Throughput:  150 * 2.0 = +300
-        #   Waiting:     20 * -0.15 * 50 steps = -150
-        #   Penalties:   -5 * 50 = -250
-        #   Total:       ~-100 (NEGATIVE)
+        # Expected range in normal operation: +2.5 to +5.5
+        # Expected range with problems: -3.0 to +1.0
         
-        return total_reward    
+        return total_reward
     
     def render(self, mode='human'):
-        """Print current state (simplified from original)"""
+        """Print current state"""
         if mode == 'human':
             print(f"\n=== Step {self.current_step} ===")
             print(f"Time: {int(self.current_time):02d}:{int((self.current_time % 1) * 60):02d}")
@@ -324,46 +317,48 @@ class SimpleButtonTrafficEnv(gym.Env):
 
 # TEST THE ENVIRONMENT
 if __name__ == "__main__":
-    print("\n TESTING SIMPLIFIED BUTTON ENVIRONMENT")
+    print("\n TESTING BALANCED REWARD FUNCTION (V3)")
     
-    # Create environment with domain randomization
-    env = SimpleButtonTrafficEnv(domain_randomization=True)
+    env = SimpleButtonTrafficEnv(domain_randomization=False)
     
     print(f"\nObservation space: {env.observation_space}")
     print(f"Action space: {env.action_space}")
     print(f"  Actions: 0=North, 1=South, 2=East, 3=West")
     
-    # Reset and show initial state
-    obs, info = env.reset()
-    print(f"\nInitial observation: {obs}")
-    print(f"Initial queues: {info['queues']}")
+    # Test the North Heavy scenario
+    print("\n TESTING NORTH HEAVY SCENARIO")
+    print("Run 1: PPO scored 87 (ignored queues)")
+    print("Run 2: PPO scored -408 (over-penalized queues)")
+    print("Run 3: Should score 200-400 (balanced)")
     
-    # Run a few test steps
-    print("\n RUNNING 10 TEST STEPS")
+    obs, info = env.reset()
+    env.queues = np.array([15, 3, 2, 4], dtype=np.float32)
+    
+    print(f"\nInitial queues: {env.queues}")
     
     total_reward = 0
     
     for i in range(10):
-        # Select action: prioritize longest queue
-        action = int(np.argmax(obs))
+        # Greedy: attack longest queue
+        action = int(np.argmax(env.queues))
         
-        # Take step
         obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
         
-        # Display
         lane_name = env.lane_names[action]
-        print(f"\nStep {i+1}:")
-        print(f"  Action: Give green to {lane_name}")
+        print(f"\nStep {i+1}: Attack {lane_name}")
         print(f"  Queues: {info['queues']}")
         print(f"  Reward: {reward:.2f}")
         print(f"  Cleared: {info['cars_cleared']:.1f} cars")
         
         if terminated or truncated:
-            print("\nEpisode ended")
             break
     
     print("\n TEST COMPLETE")
-    print(f"\nTotal reward: {total_reward:.2f}")
-    print(f"Total vehicles processed: {info['vehicles_processed']}")
-    print("\n Environment is ready for training!")
+    print(f"Total reward: {total_reward:.2f}")
+    print(f"Average per step: {total_reward/10:.2f}")
+    
+    print("\n EXPECTED BEHAVIOR:")
+    print("  Rewards should be mostly POSITIVE (+2 to +5 per step)")
+    print("  Total over 10 steps: +25 to +40")
+    print("  This balances throughput and queue management")

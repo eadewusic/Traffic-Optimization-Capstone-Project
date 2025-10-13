@@ -1,0 +1,48 @@
+{
+  "run_name": "run_3",
+  "run_number": 3,
+  "timestamp": "2025-10-13 09:11:23",
+  "config": {
+    "total_timesteps": 150000,
+    "domain_randomization": true,
+    "eval_frequency": 5000,
+    "n_eval_episodes": 15,
+    "reward_version": "v3_balanced",
+    "improvements": {
+      "network_architecture": "[128, 64, 32]",
+      "entropy_coefficient": 0.02,
+      "batch_size": 128,
+      "learning_rate": "5e-4 \u2192 5e-5 (decay)",
+      "reward_ratio": "6:1 (throughput:queue)"
+    }
+  },
+  "training": {
+    "best_mean_reward": 1080.65,
+    "convergence_timestep": null
+  },
+  "test": {
+    "avg_reward": 193.0500030517578,
+    "std_reward": 121.5146484375,
+    "avg_cleared": 237.5,
+    "total_cleared": 2375,
+    "episodes": [
+      315.5,
+      60.75,
+      297.75,
+      -33.75,
+      170.5,
+      234.75,
+      182.0,
+      60.75,
+      314.75,
+      327.5
+    ]
+  },
+  "files": {
+    "best_model": "../models/hardware_ppo\\run_3\\best_model.zip",
+    "final_model": "../models/hardware_ppo\\run_3\\final_model.zip",
+    "vecnormalize": "../models/hardware_ppo\\run_3\\vecnormalize.pkl",
+    "logs": "../logs/hardware_ppo\\run_3",
+    "training_plot": "../visualizations\\run_3\\training_plot.png"
+  }
+}

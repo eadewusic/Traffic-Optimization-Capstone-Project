@@ -1,6 +1,10 @@
 """
-Train PPO for Hardware Deployment
-Simplified 4-button environment with domain randomization
+Train PPO for Hardware Deployment - VERSION 3 with Run Management
+Features:
+- Automatic run folder creation (run_1, run_2, etc.)
+- Organizes all outputs by run number
+- Balanced reward function (fixes Run 2 failures)
+- Proper experiment tracking
 """
 
 import gymnasium as gym
@@ -16,45 +20,90 @@ import os
 from datetime import datetime
 import sys
 import json
+import glob
+import re
 
 # Define the project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-# Add the project root to the system path so Python can find 'environments'
+# Add the project root to the system path
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-# Import using the absolute path from the project root
 from environments.simple_button_env import SimpleButtonTrafficEnv
 
 # CONFIGURATION
-TOTAL_TIMESTEPS = 100000  # 100k steps (~30-60 min training time)
-EVAL_FREQ = 5000          # Evaluate every 5k steps
-SAVE_FREQ = 10000         # Save checkpoint every 10k steps
-N_EVAL_EPISODES = 10      # Number of episodes per evaluation
+TOTAL_TIMESTEPS = 150000
+EVAL_FREQ = 5000
+SAVE_FREQ = 10000
+N_EVAL_EPISODES = 15
 
-MODELS_DIR = "../models/hardware_ppo"
-LOGS_DIR = "../logs/hardware_ppo"
-RESULTS_DIR = "../results"
-VISUALIZATIONS_DIR = "../visualizations"
-os.makedirs(MODELS_DIR, exist_ok=True)
-os.makedirs(LOGS_DIR, exist_ok=True)
-os.makedirs(RESULTS_DIR, exist_ok=True)
-os.makedirs(VISUALIZATIONS_DIR, exist_ok=True)
+# BASE DIRECTORIES
+BASE_MODELS_DIR = "../models/hardware_ppo"
+BASE_LOGS_DIR = "../logs/hardware_ppo"
+BASE_RESULTS_DIR = "../results"
+BASE_VISUALIZATIONS_DIR = "../visualizations"
 
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+# Create base directories
+for dir_path in [BASE_MODELS_DIR, BASE_LOGS_DIR, BASE_RESULTS_DIR, BASE_VISUALIZATIONS_DIR]:
+    os.makedirs(dir_path, exist_ok=True)
 
 
-# PLOTTING FUNCTIONS
-def plot_training_results(log_path, save_path, timestamp):
+def get_next_run_number():
+    """
+    Automatically detect the next run number by looking at existing run folders
+    """
+    # Check models directory for existing runs
+    existing_runs = []
+    
+    for base_dir in [BASE_MODELS_DIR, BASE_RESULTS_DIR, BASE_VISUALIZATIONS_DIR]:
+        if os.path.exists(base_dir):
+            for item in os.listdir(base_dir):
+                if os.path.isdir(os.path.join(base_dir, item)) and item.startswith('run_'):
+                    try:
+                        run_num = int(item.split('_')[1])
+                        existing_runs.append(run_num)
+                    except (IndexError, ValueError):
+                        continue
+    
+    if existing_runs:
+        return max(existing_runs) + 1
+    else:
+        return 1
+
+
+def create_run_directories(run_number):
+    """
+    Create organized directory structure for this run
+    
+    Returns dict with all paths for this run
+    """
+    run_name = f"run_{run_number}"
+    
+    paths = {
+        'models': os.path.join(BASE_MODELS_DIR, run_name),
+        'logs': os.path.join(BASE_LOGS_DIR, run_name),
+        'results': os.path.join(BASE_RESULTS_DIR, run_name),
+        'visualizations': os.path.join(BASE_VISUALIZATIONS_DIR, run_name),
+        'run_name': run_name,
+        'run_number': run_number
+    }
+    
+    # Create all directories
+    for key, path in paths.items():
+        if key not in ['run_name', 'run_number']:
+            os.makedirs(path, exist_ok=True)
+    
+    return paths
+
+
+def plot_training_results(log_path, save_path, run_info):
     """Generate and save training visualization plots"""
     try:
-        # Load training results from monitor files
         results = load_results(log_path)
         
-        # Create figure with 4 subplots
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle(f'Training Results - {timestamp}', fontsize=16)
+        fig.suptitle(f'Training Results - {run_info["run_name"]} ({run_info["timestamp"]})', fontsize=16)
         
         # 1. Episode Rewards Over Time
         x, y = ts2xy(results, 'timesteps')
@@ -64,7 +113,7 @@ def plot_training_results(log_path, save_path, timestamp):
         axes[0, 0].set_title('Episode Rewards Over Time')
         axes[0, 0].grid(True, alpha=0.3)
         
-        # 2. Moving Average of Rewards (smoothed)
+        # 2. Moving Average of Rewards
         window = 50
         if len(y) >= window:
             moving_avg = np.convolve(y, np.ones(window)/window, mode='valid')
@@ -92,8 +141,7 @@ def plot_training_results(log_path, save_path, timestamp):
         
         plt.tight_layout()
         
-        # Save figure
-        plot_path = os.path.join(save_path, f"training_plot_{timestamp}.png")
+        plot_path = os.path.join(save_path, "training_plot.png")
         plt.savefig(plot_path, dpi=150, bbox_inches='tight')
         plt.close()
         
@@ -104,26 +152,25 @@ def plot_training_results(log_path, save_path, timestamp):
         return None
 
 
-def save_training_summary(results_dict, filename="training_summary.json"):
+def save_training_summary(results_dict, results_dir):
     """Save training results to JSON and Markdown"""
-    
-    # Save JSON
-    json_path = os.path.join(RESULTS_DIR, filename)
+    json_path = os.path.join(results_dir, "training_summary.json")
     
     with open(json_path, 'w') as f:
         json.dump(results_dict, f, indent=2)
     
     print(f"\nResults saved to: {json_path}")
     
-    # Also save as Markdown for easy reading
-    md_path = json_path.replace('.json', '.md')
+    md_path = os.path.join(results_dir, "training_summary.md")
     with open(md_path, 'w') as f:
-        f.write(f"# Training Summary - {results_dict['timestamp']}\n\n")
+        f.write(f"# Training Summary - {results_dict['run_name']}\n\n")
+        f.write(f"**Timestamp:** {results_dict['timestamp']}\n\n")
         
         f.write("## Configuration\n")
         f.write(f"- Total timesteps: {results_dict['config']['total_timesteps']:,}\n")
         f.write(f"- Domain randomization: {results_dict['config']['domain_randomization']}\n")
-        f.write(f"- Eval frequency: {results_dict['config']['eval_frequency']:,}\n\n")
+        f.write(f"- Eval frequency: {results_dict['config']['eval_frequency']:,}\n")
+        f.write(f"- Reward version: {results_dict['config']['reward_version']}\n\n")
         
         f.write("## Training Performance\n")
         f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n")
@@ -131,7 +178,6 @@ def save_training_summary(results_dict, filename="training_summary.json"):
             f.write(f"- Convergence timestep: {results_dict['training']['convergence_timestep']:,}\n")
         f.write("\n")
         
-        # Write test results if they exist
         if 'test' in results_dict:
             f.write("## Quick Test Results (10 episodes)\n")
             f.write(f"- Average reward: {results_dict['test']['avg_reward']:.1f}\n")
@@ -156,8 +202,7 @@ def save_training_summary(results_dict, filename="training_summary.json"):
     print(f"Summary saved to: {md_path}")
 
 
-# ENVIRONMENT FACTORY
-def make_env(domain_randomization=True, seed=None):
+def make_env(domain_randomization=True, seed=None, log_dir=None):
     """Factory function to create environment"""
     def _init():
         env = SimpleButtonTrafficEnv(
@@ -166,63 +211,83 @@ def make_env(domain_randomization=True, seed=None):
             max_arrival_rate=3,
             domain_randomization=domain_randomization
         )
-        # Wrap with Monitor for logging (required for plotting)
-        env = Monitor(env, filename=os.path.join(LOGS_DIR, f"monitor_{timestamp}"))
+        if log_dir:
+            env = Monitor(env, filename=os.path.join(log_dir, "monitor"))
         if seed is not None:
             env.reset(seed=seed)
         return env
     return _init
 
 
+def linear_schedule(initial_value, final_value):
+    """Linear learning rate schedule that decays over training"""
+    def schedule(progress_remaining):
+        return final_value + progress_remaining * (initial_value - final_value)
+    return schedule
+
+
+# ==================== MAIN TRAINING SCRIPT ====================
+
+# Get run number and create directories
+run_number = get_next_run_number()
+run_paths = create_run_directories(run_number)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+run_info = {
+    'run_name': run_paths['run_name'],
+    'run_number': run_paths['run_number'],
+    'timestamp': timestamp
+}
+
 # PRINT HEADER
-print(" TRAINING PPO FOR HARDWARE DEPLOYMENT")
-print(f"\nProject: Traffic Control with Button/LED Prototype")
+print(f"\n RUN {run_number}: PPO TRAINING FOR HARDWARE DEPLOYMENT")
+print(f"\nRun: {run_paths['run_name']}")
 print(f"Timestamp: {timestamp}")
 print(f"Total timesteps: {TOTAL_TIMESTEPS:,}")
 print(f"Domain randomization: ENABLED")
-print(f"\nEnvironment:")
-print(f"  State: 4 queue counts [North, South, East, West]")
-print(f"  Actions: 4 discrete (which lane gets green)")
-print(f"  Reward: Minimize total queue length")
+print(f"\nReward Function: BALANCED (Version 3)")
+print(f"  - Throughput: +1.5 per car (was +1.0 in Run 2)")
+print(f"  - Queue penalty: -0.25 per car (was -0.4 in Run 2)")
+print(f"  - Ratio: 6:1 (balanced, not too harsh)")
+print(f"\nDirectory Structure:")
+print(f"  Models: {run_paths['models']}")
+print(f"  Logs: {run_paths['logs']}")
+print(f"  Results: {run_paths['results']}")
+print(f"  Visualizations: {run_paths['visualizations']}")
 print()
 
 # CREATE ENVIRONMENTS
 print("Creating environments...")
 
-# Training environment (with domain randomization)
-train_env = DummyVecEnv([make_env(domain_randomization=True, seed=42)])
+train_env = DummyVecEnv([make_env(domain_randomization=True, seed=42, log_dir=run_paths['logs'])])
 train_env = VecNormalize(
     train_env, 
-    norm_obs=True,      # Normalize observations
-    norm_reward=True,   # Normalize rewards
-    clip_obs=10.0,      # Clip observations
-    clip_reward=10.0,   # Clip rewards
-    gamma=0.99          # Discount factor for reward normalization
+    norm_obs=True,
+    norm_reward=True,
+    clip_obs=10.0,
+    clip_reward=10.0,
+    gamma=0.99
 )
 
-# Evaluation environment (without domain randomization for consistent eval)
 eval_env = DummyVecEnv([make_env(domain_randomization=False, seed=123)])
 eval_env = VecNormalize(
     eval_env,
     norm_obs=True,
-    norm_reward=False,  # Don't normalize rewards during eval
-    training=False,     # Don't update running stats during eval
+    norm_reward=False,
+    training=False,
     clip_obs=10.0
 )
 
 print("Environments created")
-print(f"  Training: With domain randomization")
-print(f"  Evaluation: Without domain randomization (for consistent comparison)")
 print()
 
 # SETUP CALLBACKS
 print("Setting up callbacks...")
 
-# Evaluation callback
 eval_callback = EvalCallback(
     eval_env,
-    best_model_save_path=MODELS_DIR,
-    log_path=LOGS_DIR,
+    best_model_save_path=run_paths['models'],
+    log_path=run_paths['logs'],
     eval_freq=EVAL_FREQ,
     n_eval_episodes=N_EVAL_EPISODES,
     deterministic=True,
@@ -230,11 +295,10 @@ eval_callback = EvalCallback(
     verbose=1
 )
 
-# Checkpoint callback
 checkpoint_callback = CheckpointCallback(
     save_freq=SAVE_FREQ,
-    save_path=MODELS_DIR,
-    name_prefix=f"hardware_ppo_checkpoint_{timestamp}",
+    save_path=run_paths['models'],
+    name_prefix="checkpoint",
     save_replay_buffer=False,
     save_vecnormalize=True,
 )
@@ -251,70 +315,66 @@ model = PPO(
     policy="MlpPolicy",
     env=train_env,
     
-    # Learning parameters
-    learning_rate=3e-4,     # Standard learning rate
-    n_steps=2048,           # Steps per update
-    batch_size=64,          # Minibatch size
-    n_epochs=10,            # Training epochs per update
+    # Learning parameters with decay schedule
+    learning_rate=linear_schedule(5e-4, 5e-5),
+    n_steps=2048,
+    batch_size=128,
+    n_epochs=10,
     
     # PPO-specific parameters
-    gamma=0.99,             # Discount factor
-    gae_lambda=0.95,        # GAE parameter
-    clip_range=0.2,         # PPO clipping parameter
-    clip_range_vf=None,     # Value function clipping (None = same as clip_range)
+    gamma=0.99,
+    gae_lambda=0.95,
+    clip_range=0.2,
+    clip_range_vf=None,
     normalize_advantage=True,
     
     # Entropy and value function coefficients
-    ent_coef=0.01,          # Entropy bonus (encourage exploration)
-    vf_coef=0.5,            # Value function loss coefficient
-    max_grad_norm=0.5,      # Gradient clipping
+    ent_coef=0.02,
+    vf_coef=0.5,
+    max_grad_norm=0.5,
     
     # Other parameters
-    use_sde=False,          # State-dependent exploration
+    use_sde=False,
     sde_sample_freq=-1,
-    target_kl=None,         # Target KL divergence (None = no limit)
+    target_kl=0.02,
     
     # Logging
-    tensorboard_log=LOGS_DIR,
+    tensorboard_log=run_paths['logs'],
     
     # Network architecture
     policy_kwargs=dict(
         net_arch=dict(
-            pi=[64, 64],    # Policy network: 2 hidden layers, 64 neurons each
-            vf=[64, 64]     # Value network: 2 hidden layers, 64 neurons each
+            pi=[128, 64, 32],
+            vf=[128, 64, 32]
         ),
-        activation_fn=torch.nn.Tanh  # Activation function
+        activation_fn=torch.nn.ReLU
     ),
     
     verbose=1,
-    device='auto'  # Use GPU if available, else CPU
+    device='auto'
 )
 
 print("Model created successfully")
-print(f"\nModel details:")
-print(f"  Policy: MLP (Multi-Layer Perceptron)")
-print(f"  Architecture: [4 inputs] → [64] → [64] → [4 outputs]")
-print(f"  Parameters: ~10,000 trainable parameters")
-print(f"  Device: {model.device}")
 print()
 
 # TRAIN MODEL
-print("\n STARTING TRAINING")
-print(f"\nProgress will be displayed below.\n")
+print(" STARTING TRAINING")
+print(f"\nProgress will be displayed below.")
+print(f"Expected training time: ~1.5-2 hours\n")
 
 try:
     model.learn(
         total_timesteps=TOTAL_TIMESTEPS,
         callback=callbacks,
-        log_interval=10,        # Log every 10 updates
-        progress_bar=True       # Show progress bar
+        log_interval=10,
+        progress_bar=True
     )
     
     print("\n TRAINING COMPLETE")
     
     # Save final model
-    final_model_path = os.path.join(MODELS_DIR, f"hardware_ppo_final_{timestamp}")
-    vecnormalize_path = final_model_path + "_vecnormalize.pkl"
+    final_model_path = os.path.join(run_paths['models'], "final_model")
+    vecnormalize_path = os.path.join(run_paths['models'], "vecnormalize.pkl")
     model.save(final_model_path)
     train_env.save(vecnormalize_path)
     
@@ -324,8 +384,8 @@ try:
     
 except KeyboardInterrupt:
     print("\n\nTraining interrupted by user (Ctrl+C)")
-    interrupt_path = os.path.join(MODELS_DIR, f"hardware_ppo_interrupted_{timestamp}")
-    vecnormalize_path = interrupt_path + "_vecnormalize.pkl"
+    interrupt_path = os.path.join(run_paths['models'], "interrupted_model")
+    vecnormalize_path = os.path.join(run_paths['models'], "vecnormalize_interrupted.pkl")
     model.save(interrupt_path)
     train_env.save(vecnormalize_path)
     print(f"Model saved to: {interrupt_path}.zip")
@@ -354,14 +414,9 @@ for episode in range(10):
     episode_reward = 0
     episode_cleared = 0
     
-    for step in range(50):  # 50 steps per episode
-        # Normalize observation
+    for step in range(50):
         obs_normalized = train_env.normalize_obs(obs)
-        
-        # Get action from trained model
         action, _states = model.predict(obs_normalized, deterministic=True)
-        
-        # Take step
         obs, reward, terminated, truncated, info = test_env.step(action)
         episode_reward += reward
         episode_cleared += info.get('cars_cleared', 0)
@@ -388,27 +443,36 @@ print(f"  Total cleared:   {int(total_cleared):3d} vehicles")
 # GENERATE TRAINING PLOTS
 print("\n GENERATING TRAINING PLOTS")
 
-training_plot_path = plot_training_results(LOGS_DIR, VISUALIZATIONS_DIR, timestamp)
+training_plot_path = plot_training_results(run_paths['logs'], run_paths['visualizations'], run_info)
 if training_plot_path:
     print(f"Training plot saved to: {training_plot_path}")
 
 # SAVE TRAINING SUMMARY
 print("\n SAVING TRAINING SUMMARY")
 
-# Get best evaluation results from callback
 best_mean_reward = eval_callback.best_mean_reward if hasattr(eval_callback, 'best_mean_reward') else 0.0
 
 training_results = {
+    "run_name": run_paths['run_name'],
+    "run_number": run_paths['run_number'],
     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "config": {
         "total_timesteps": TOTAL_TIMESTEPS,
         "domain_randomization": True,
         "eval_frequency": EVAL_FREQ,
-        "n_eval_episodes": N_EVAL_EPISODES
+        "n_eval_episodes": N_EVAL_EPISODES,
+        "reward_version": "v3_balanced",
+        "improvements": {
+            "network_architecture": "[128, 64, 32]",
+            "entropy_coefficient": 0.02,
+            "batch_size": 128,
+            "learning_rate": "5e-4 → 5e-5 (decay)",
+            "reward_ratio": "6:1 (throughput:queue)"
+        }
     },
     "training": {
         "best_mean_reward": float(best_mean_reward),
-        "convergence_timestep": None  # Could be tracked with custom callback
+        "convergence_timestep": None
     },
     "test": {
         "avg_reward": float(avg_reward),
@@ -418,23 +482,27 @@ training_results = {
         "episodes": [float(r) for r in episode_rewards]
     },
     "files": {
-        "best_model": os.path.join(MODELS_DIR, "best_model.zip"),
+        "best_model": os.path.join(run_paths['models'], "best_model.zip"),
         "final_model": final_model_path + ".zip",
         "vecnormalize": vecnormalize_path,
-        "logs": LOGS_DIR,
+        "logs": run_paths['logs'],
         "training_plot": training_plot_path
     }
 }
 
-save_training_summary(training_results, f"training_summary_{timestamp}.json")
+save_training_summary(training_results, run_paths['results'])
 
-# TRAINING SUMMARY
-print("\n TRAINING SUMMARY")
+# FINAL SUMMARY
+print(f"\n RUN {run_number} COMPLETE")
 
-print(f"\nFiles saved:")
-print(f"  Best model:  {MODELS_DIR}/best_model.zip")
-print(f"  Final model: {final_model_path}.zip")
-print(f"  Logs:        {LOGS_DIR}/")
-if training_plot_path:
-    print(f"  Training plot: {training_plot_path}")
-print(f"\nTraining complete!")
+print(f"\nFiles saved in:")
+print(f"  {run_paths['models']}/")
+print(f"    ├── best_model.zip")
+print(f"    ├── final_model.zip")
+print(f"    └── vecnormalize.pkl")
+print(f"  {run_paths['results']}/")
+print(f"    ├── training_summary.json")
+print(f"    └── training_summary.md")
+print(f"  {run_paths['visualizations']}/")
+print(f"    └── training_plot.png")
+print()

@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-10-13 08:05:22",
+  "model": {
+    "path": "../models/hardware_ppo\\hardware_ppo_final_20251012_213423",
+    "vecnorm_path": "../models/hardware_ppo\\hardware_ppo_final_20251012_213423_vecnormalize.pkl"
+  },
+  "overall_stats": {
+    "PPO (Retrained)": {
+      "avg_reward": -170.3199722290039,
+      "avg_cleared": 244.2,
+      "avg_final_queue": 24.6
+    },
+    "Longest Queue": {
+      "avg_reward": 120.06000518798828,
+      "avg_cleared": 242.2,
+      "avg_final_queue": 21.2
+    },
+    "Round Robin": {
+      "avg_reward": -377.6999908447266,
+      "avg_cleared": 229.4,
+      "avg_final_queue": 24.6
+    },
+    "Fixed Time": {
+      "avg_reward": -637.6600036621094,
+      "avg_cleared": 207.8,
+      "avg_final_queue": 34.6
+    }
+  },
+  "improvements": {
+    "reward_improvement_pct": -241.86237287123157,
+    "throughput_improvement_pct": 0.8257638315441783,
+    "queue_reduction_pct": -16.037735849056613
+  },
+  "wins": {
+    "PPO (Retrained)": 0,
+    "Longest Queue": 5,
+    "Round Robin": 0,
+    "Fixed Time": 0
+  },
+  "champion": "Longest Queue",
+  "detailed_results": [
+    {
+      "controller": "PPO (Retrained)",
+      "scenario": "Balanced Traffic",
+      "reward": -384.3999938964844,
+      "cleared": 250,
+      "final_queue": 27
+    },
+    {
+      "controller": "Longest Queue",
+      "scenario": "Balanced Traffic",
+      "reward": 279.00006103515625,
+      "cleared": 240,
+      "final_queue": 15
+    },
+    {
+      "controller": "Round Robin",
+      "scenario": "Balanced Traffic",
+      "reward": -60.30000305175781,
+      "cleared": 234,
+      "final_queue": 20
+    },
+    {
+      "controller": "Fixed Time",
+      "scenario": "Balanced Traffic",
+      "reward": -540.199951171875,
+      "cleared": 202,
+      "final_queue": 28
+    },
+    {
+      "controller": "PPO (Retrained)",
+      "scenario": "North Heavy Congestion",
+      "reward": -408.2999267578125,
+      "cleared": 250,
+      "final_queue": 33
+    },
+    {
+      "controller": "Longest Queue",
+      "scenario": "North Heavy Congestion",
+      "reward": -151.6000213623047,
+      "cleared": 250,
+      "final_queue": 37
+    },
+    {
+      "controller": "Round Robin",
+      "scenario": "North Heavy Congestion",
+      "reward": -603.9998779296875,
+      "cleared": 237,
+      "final_queue": 30
+    },
+    {
+      "controller": "Fixed Time",
+      "scenario": "North Heavy Congestion",
+      "reward": -653.6000366210938,
+      "cleared": 212,
+      "final_queue": 30
+    },
+    {
+      "controller": "PPO (Retrained)",
+      "scenario": "East-West Rush Hour",
+      "reward": -105.69995880126953,
+      "cleared": 242,
+      "final_queue": 14
+    },
+    {
+      "controller": "Longest Queue",
+      "scenario": "East-West Rush Hour",
+      "reward": -59.800010681152344,
+      "cleared": 250,
+      "final_queue": 30
+    },
+    {
+      "controller": "Round Robin",
+      "scenario": "East-West Rush Hour",
+      "reward": -523.9000244140625,
+      "cleared": 233,
+      "final_queue": 34
+    },
+    {
+      "controller": "Fixed Time",
+      "scenario": "East-West Rush Hour",
+      "reward": -873.2999267578125,
+      "cleared": 217,
+      "final_queue": 44
+    },
+    {
+      "controller": "PPO (Retrained)",
+      "scenario": "Random Traffic Pattern",
+      "reward": -293.6000061035156,
+      "cleared": 250,
+      "final_queue": 29
+    },
+    {
+      "controller": "Longest Queue",
+      "scenario": "Random Traffic Pattern",
+      "reward": 98.80000305175781,
+      "cleared": 247,
+      "final_queue": 16
+    },
+    {
+      "controller": "Round Robin",
+      "scenario": "Random Traffic Pattern",
+      "reward": -150.800048828125,
+      "cleared": 222,
+      "final_queue": 15
+    },
+    {
+      "controller": "Fixed Time",
+      "scenario": "Random Traffic Pattern",
+      "reward": -634.0000610351562,
+      "cleared": 199,
+      "final_queue": 41
+    },
+    {
+      "controller": "PPO (Retrained)",
+      "scenario": "Single Lane Blocked",
+      "reward": 340.4000244140625,
+      "cleared": 229,
+      "final_queue": 20
+    },
+    {
+      "controller": "Longest Queue",
+      "scenario": "Single Lane Blocked",
+      "reward": 433.8999938964844,
+      "cleared": 224,
+      "final_queue": 8
+    },
+    {
+      "controller": "Round Robin",
+      "scenario": "Single Lane Blocked",
+      "reward": -549.5,
+      "cleared": 221,
+      "final_queue": 24
+    },
+    {
+      "controller": "Fixed Time",
+      "scenario": "Single Lane Blocked",
+      "reward": -487.2000427246094,
+      "cleared": 209,
+      "final_queue": 30
+    }
+  ],
+  "plots": {
+    "comparison": "../visualizations\\controller_comparison_20251013_080517.png",
+    "heatmap": "../visualizations\\scenario_heatmap_20251013_080517.png"
+  }
+}
