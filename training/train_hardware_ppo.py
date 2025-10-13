@@ -1,15 +1,29 @@
 """
-Train PPO for Hardware Deployment - RUN 5
-FINAL CONFIGURATION: Best of All Runs + Fixed Reward
+Train PPO for Hardware Deployment - RUN 6
+PROPERLY BALANCED REWARDS - Positive for Good Performance
 
-Key Changes from Run 4a:
-- Network: [64, 64] (proven from Run 4a)
-- Domain randomization: ENABLED (needed for hardware)
-- Reward function: FIXED (aligned with effective control)
-- Training: 250k steps (longer for DR convergence)
-- Hardware-aware DR config (GPIO delays, button debounce)
+Key Changes from Run 5:
+- Network: [64, 64] (KEPT - proven to work)
+- Domain randomization: ENABLED (KEPT - needed for hardware)
+- Reward function: FIXED SCALE (NEW - positive for good performance)
+- Training: 250k steps (KEPT - adequate for DR)
 
-Hypothesis: Fixed reward + simple network + hardware DR = Production-ready
+The Problem with Run 5:
+- Reward was always negative (even for good performance)
+- Supervisor concern: "Expected positive rewards"
+- Academic issue: Reward scale confusing
+
+The Fix in Run 6:
+- Throughput rewards DOMINATE (3.0 vs 0.5 in Run 5)
+- Congestion penalties SMALLER (0.4 vs 2.0 in Run 5)
+- Strategic bonuses added (+5 for attacking longest queue)
+- Result: POSITIVE rewards for good performance
+
+Expected Outcomes:
+- Training rewards: +500 to +1500 (POSITIVE!)
+- Test rewards: +300 to +600 (POSITIVE!)
+- Still beats baseline (same strategy, better scale)
+- Supervisor satisfied (proper reward scale)
 """
 
 import gymnasium as gym
@@ -25,7 +39,6 @@ import os
 from datetime import datetime
 import sys
 import json
-import glob
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -35,7 +48,7 @@ if PROJECT_ROOT not in sys.path:
 from environments.simple_button_env import SimpleButtonTrafficEnv
 
 # CONFIGURATION
-TOTAL_TIMESTEPS = 250000  # Increased from 200k (DR needs more training)
+TOTAL_TIMESTEPS = 250000
 EVAL_FREQ = 5000
 SAVE_FREQ = 10000
 N_EVAL_EPISODES = 15
@@ -49,18 +62,14 @@ BASE_VISUALIZATIONS_DIR = "../visualizations"
 for dir_path in [BASE_MODELS_DIR, BASE_LOGS_DIR, BASE_RESULTS_DIR, BASE_VISUALIZATIONS_DIR]:
     os.makedirs(dir_path, exist_ok=True)
 
-# HARDWARE-AWARE DOMAIN RANDOMIZATION CONFIG
-# These ranges model real Raspberry Pi + button hardware variability
+# HARDWARE-AWARE DOMAIN RANDOMIZATION CONFIG (SAME AS RUN 5)
 HARDWARE_DR_CONFIG = {
-    # Traffic variability
-    'arrival_rate_range': (0.15, 0.45),        # Human button pressing variability
-    'queue_capacity_range': (8, 12),           # Sensor reading variations
-    
-    # Timing variability (models real hardware)
-    'yellow_duration_range': (2, 4),           # Signal timing jitter
-    'gpio_latency_range': (1, 10),             # GPIO read delay (ms)
-    'button_debounce_range': (50, 200),        # Physical button debounce (ms)
-    'processing_jitter_range': (0, 5),         # Raspberry Pi processing variance (ms)
+    'arrival_rate_range': (0.15, 0.45),
+    'queue_capacity_range': (8, 12),
+    'yellow_duration_range': (2, 4),
+    'gpio_latency_range': (1, 10),
+    'button_debounce_range': (50, 200),
+    'processing_jitter_range': (0, 5),
 }
 
 
@@ -81,7 +90,7 @@ def get_next_run_number():
     if existing_runs:
         return max(existing_runs) + 1
     else:
-        return 5
+        return 6
 
 
 def create_run_directories(run_number):
@@ -110,23 +119,27 @@ def plot_training_results(log_path, save_path, run_info):
         results = load_results(log_path)
         
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle(f'Training Results - {run_info["run_name"]} (Fixed Reward + Hardware DR)', fontsize=16)
+        fig.suptitle(f'Training Results - {run_info["run_name"]} (Properly Balanced Rewards)', fontsize=16)
         
         x, y = ts2xy(results, 'timesteps')
         axes[0, 0].plot(x, y, alpha=0.6)
+        axes[0, 0].axhline(y=0, color='r', linestyle='--', alpha=0.3, label='Zero Line')
         axes[0, 0].set_xlabel('Timesteps')
         axes[0, 0].set_ylabel('Episode Reward')
-        axes[0, 0].set_title('Episode Rewards Over Time')
+        axes[0, 0].set_title('Episode Rewards Over Time (Should be POSITIVE!)')
         axes[0, 0].grid(True, alpha=0.3)
+        axes[0, 0].legend()
         
         window = 50
         if len(y) >= window:
             moving_avg = np.convolve(y, np.ones(window)/window, mode='valid')
             axes[0, 1].plot(x[window-1:], moving_avg, color='orange', linewidth=2)
+            axes[0, 1].axhline(y=0, color='r', linestyle='--', alpha=0.3, label='Zero Line')
             axes[0, 1].set_xlabel('Timesteps')
             axes[0, 1].set_ylabel('Moving Average Reward')
             axes[0, 1].set_title(f'Smoothed Rewards (window={window})')
             axes[0, 1].grid(True, alpha=0.3)
+            axes[0, 1].legend()
         
         if 'l' in results.columns:
             axes[1, 0].plot(results['l'], alpha=0.6, color='green')
@@ -165,52 +178,55 @@ def save_training_summary(results_dict, results_dir):
     md_path = os.path.join(results_dir, "training_summary.md")
     with open(md_path, 'w') as f:
         f.write(f"# Training Summary - {results_dict['run_name']}\n\n")
-        f.write(f"**Variant:** Production-Ready (Fixed Reward + Hardware DR)\n")
+        f.write(f"**Variant:** Properly Balanced Rewards (Positive for Good Performance)\n")
         f.write(f"**Timestamp:** {results_dict['timestamp']}\n\n")
         
-        f.write("## Key Improvements in Run 5\n")
-        f.write("**From Run 4a (simple network):**\n")
-        f.write("- Network: [64, 64] (proven to work)\n")
-        f.write("- Domain rand: Enabled (needed for hardware)\n")
-        f.write("- Reward: FIXED to align with effective control\n\n")
+        f.write("## What's Different in Run 6\n")
+        f.write("**Problem with Run 5:**\n")
+        f.write("- Rewards always negative (even for good performance)\n")
+        f.write("- Supervisor concern: 'Expected positive rewards'\n")
+        f.write("- Academic issue: Confusing reward scale\n\n")
         
-        f.write("**New reward function:**\n")
-        f.write("- Primary: Minimize longest queue (-2.0)\n")
-        f.write("- Secondary: Maximize throughput (+0.5)\n")
-        f.write("- Tertiary: Minimize total waiting (-0.1)\n\n")
+        f.write("**Solution in Run 6:**\n")
+        f.write("- Throughput rewards DOMINATE: 3.0 (was 0.5 in Run 5)\n")
+        f.write("- Congestion penalties SMALLER: -0.4 (was -2.0 in Run 5)\n")
+        f.write("- Strategic bonuses added: +5.0 for attacking longest queue\n")
+        f.write("- Result: POSITIVE rewards for good performance\n\n")
         
-        f.write("**Hardware-aware domain randomization:**\n")
-        f.write("- GPIO latency: 1-10ms\n")
-        f.write("- Button debounce: 50-200ms\n")
-        f.write("- Processing jitter: 0-5ms\n")
-        f.write("- Arrival rate: 0.15-0.45\n\n")
+        f.write("**What's Kept from Run 5 (that worked):**\n")
+        f.write("- Strategic alignment: Prioritize longest queue\n")
+        f.write("- Simple network: [64, 64]\n")
+        f.write("- Hardware DR: GPIO delays, button debounce\n")
+        f.write("- Extended training: 250k steps\n\n")
         
         f.write("## Configuration\n")
         f.write(f"- Total timesteps: {results_dict['config']['total_timesteps']:,}\n")
         f.write(f"- Domain randomization: {results_dict['config']['domain_randomization']}\n")
-        f.write(f"- Network parameters: ~10,000\n\n")
+        f.write(f"- Network: {results_dict['config']['network_architecture']}\n")
+        f.write(f"- Parameters: {results_dict['config']['parameters']}\n\n")
         
         f.write("## Training Performance\n")
-        f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n\n")
+        f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n")
+        f.write(f"- Expected: +500 to +1500 (POSITIVE!)\n\n")
         
         if 'test' in results_dict:
             f.write("## Quick Test Results (10 episodes)\n")
             f.write(f"- Average reward: {results_dict['test']['avg_reward']:.1f}\n")
             f.write(f"- Std deviation: {results_dict['test']['std_reward']:.1f}\n")
-            f.write(f"- Average cleared: {results_dict['test']['avg_cleared']:.0f} vehicles\n\n")
+            f.write(f"- Average cleared: {results_dict['test']['avg_cleared']:.0f} vehicles\n")
+            f.write(f"- Expected: +300 to +600 (POSITIVE!)\n\n")
         
-        f.write("## Expected vs Previous Runs\n")
-        f.write("| Run | Network | DR | Reward | Test Perf | Status |\n")
-        f.write("|-----|---------|----|---------|-----------|---------|\n")
-        f.write("| 4a | [64,64] | No | Old | 290.8 | Baseline |\n")
-        f.write("| 4b | [128,128,64] | No | Old | 181.7 | Worse |\n")
-        f.write("| 5 | [64,64] | Yes | Fixed | TBD | Expected: +5-15% |\n")
+        f.write("## Comparison to Previous Runs\n")
+        f.write("| Run | Network | DR | Reward Scale | Test Result | Status |\n")
+        f.write("|-----|---------|----|--------------|--------------|---------|\n")
+        f.write("| 5 | [64,64] | Yes | Negative | -652 (beat baseline +6.9%) | Worked but confusing |\n")
+        f.write("| 6 | [64,64] | Yes | Positive | TBD | Expected: +300 to +600 |\n")
     
     print(f"Summary saved to: {md_path}")
 
 
 def make_env(domain_randomization=False, seed=None, log_dir=None):
-    """Factory function to create environment with hardware-aware DR"""
+    """Factory function to create environment"""
     def _init():
         env = SimpleButtonTrafficEnv(
             max_queue_length=20,
@@ -247,25 +263,24 @@ run_info = {
 }
 
 # PRINT HEADER
-print(f" RUN {run_number}: PRODUCTION-READY CONFIGURATION")
+print(f" RUN {run_number}: PROPERLY BALANCED REWARDS")
 print(f"\nRun: {run_paths['run_name']}")
 print(f"Timestamp: {timestamp}")
 print(f"Total timesteps: {TOTAL_TIMESTEPS:,}")
-print(f"\n KEY IMPROVEMENTS IN RUN 5:")
-print(f"  Network: [64, 64] (proven from Run 4a)")
-print(f"  Parameters: ~10,000")
-print(f"  Domain Randomization: ENABLED (hardware-ready)")
-print(f"  Reward Function: FIXED (aligned with effective control)")
-print(f"\n NEW REWARD STRUCTURE:")
-print(f"  Primary: Minimize longest queue (-2.0)")
-print(f"  Secondary: Maximize throughput (+0.5)")
-print(f"  Tertiary: Minimize total waiting (-0.1)")
-print(f"\n HARDWARE-AWARE DOMAIN RANDOMIZATION:")
-print(f"  GPIO latency: 1-10ms")
-print(f"  Button debounce: 50-200ms")
-print(f"  Processing jitter: 0-5ms")
-print(f"  Arrival rate variance: 0.15-0.45")
-print(f"\nGoal: Beat baseline by +5-15%, win 3-4/5 scenarios, hardware-ready")
+print(f"\n THE PROBLEM WITH RUN 5:")
+print(f"  Rewards always negative (even for good performance)")
+print(f"  Supervisor: 'Expected positive rewards'")
+print(f"  Beat baseline (+6.9%) but reward scale confusing")
+print(f"\n THE FIX IN RUN 6:")
+print(f"  Throughput rewards: 3.0 (was 0.5 in Run 5) - DOMINATE")
+print(f"  Longest queue penalty: -0.4 (was -2.0 in Run 5) - SMALLER")
+print(f"  Strategic bonus: +5.0 for attacking longest queue - NEW")
+print(f"  Result: POSITIVE rewards for good performance")
+print(f"\n WHAT'S KEPT FROM RUN 5 (that worked):")
+print(f"  Network: [64, 64] (proven)")
+print(f"  Domain randomization: ENABLED (hardware-ready)")
+print(f"  Strategic alignment: Longest queue priority")
+print(f"\nGoal: Beat baseline + satisfy supervisor with positive rewards")
 print()
 
 # CREATE ENVIRONMENTS
@@ -281,7 +296,7 @@ train_env = VecNormalize(
     gamma=0.99
 )
 
-eval_env = DummyVecEnv([make_env(domain_randomization=False, seed=123, log_dir=run_paths['logs'])])  # Eval on standard
+eval_env = DummyVecEnv([make_env(domain_randomization=False, seed=123, log_dir=run_paths['logs'])])
 eval_env = VecNormalize(
     eval_env,
     norm_obs=True,
@@ -320,17 +335,17 @@ callbacks = [eval_callback, checkpoint_callback]
 print("Callbacks configured")
 print()
 
-# CREATE PPO MODEL - SIMPLE ARCHITECTURE (proven from Run 4a)
+# CREATE PPO MODEL
 print("Initializing PPO model...")
 
 model = PPO(
     policy="MlpPolicy",
     env=train_env,
     
-    # Learning parameters
+    # Learning parameters (SAME AS RUN 5)
     learning_rate=linear_schedule(5e-4, 5e-5),
     n_steps=2048,
-    batch_size=64,  # Proven from Run 4a
+    batch_size=64,
     n_epochs=10,
     
     # PPO-specific
@@ -340,7 +355,7 @@ model = PPO(
     clip_range_vf=None,
     normalize_advantage=True,
     
-    # Entropy (proven from Run 4a)
+    # Entropy
     ent_coef=0.01,
     vf_coef=0.5,
     max_grad_norm=0.5,
@@ -353,10 +368,10 @@ model = PPO(
     # Logging
     tensorboard_log=run_paths['logs'],
     
-    # SIMPLE Network architecture (proven from Run 4a)
+    # Network architecture (SAME AS RUN 5 - proven)
     policy_kwargs=dict(
         net_arch=dict(
-            pi=[64, 64],  # Simple, proven architecture
+            pi=[64, 64],
             vf=[64, 64]
         ),
         activation_fn=torch.nn.ReLU
@@ -370,16 +385,15 @@ print("Model created successfully")
 print(f"\nModel details:")
 print(f"  Policy: MLP")
 print(f"  Architecture: [4 inputs] → [64] → [64] → [4 outputs]")
-print(f"  Parameters: ~10,000 (proven from Run 4a)")
-print(f"  Batch size: 64")
-print(f"  Entropy: 0.01")
+print(f"  Parameters: ~10,000")
 print(f"  Device: {model.device}")
 print()
 
 # TRAIN MODEL
-print(" STARTING TRAINING - RUN 5")
-print(f"\nFixed reward + simple network + hardware DR = Production-ready!")
-print(f"Expected training time: ~2.5 hours (250k steps with DR)\n")
+print(" STARTING TRAINING - RUN 6")
+print(f"\nProperly balanced rewards = Positive for success!")
+print(f"Expected training rewards: +500 to +1500 (POSITIVE!)")
+print(f"Expected training time: ~2.5 hours\n")
 
 try:
     model.learn(
@@ -455,6 +469,8 @@ print(f"\nTest Results:")
 print(f"  Average reward:  {avg_reward:7.1f}")
 print(f"  Reward std dev:  {std_reward:7.1f}")
 print(f"  Average cleared: {int(avg_cleared):3d} vehicles")
+print(f"\nExpected: +300 to +600 (POSITIVE!)")
+print(f"Status: {' SUCCESS' if avg_reward > 200 else ' Review needed'}")
 
 # GENERATE PLOTS
 print("\n GENERATING TRAINING PLOTS")
@@ -470,7 +486,7 @@ best_mean_reward = eval_callback.best_mean_reward if hasattr(eval_callback, 'bes
 training_results = {
     "run_name": run_paths['run_name'],
     "run_number": run_paths['run_number'],
-    "variant": "5_production_ready",
+    "variant": "6_properly_balanced_rewards",
     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "config": {
         "total_timesteps": TOTAL_TIMESTEPS,
@@ -479,9 +495,9 @@ training_results = {
         "parameters": "~10,000",
         "batch_size": 64,
         "entropy_coef": 0.01,
-        "reward_function": "fixed_longest_queue_first",
+        "reward_function": "properly_balanced_positive_for_success",
         "hardware_aware_dr": True,
-        "hypothesis": "Fixed reward + simple network + hardware DR = production-ready"
+        "hypothesis": "Same strategy as Run 5, but reward scale shows success as positive"
     },
     "training": {
         "best_mean_reward": float(best_mean_reward)
@@ -506,7 +522,7 @@ training_results = {
 save_training_summary(training_results, run_paths['results'])
 
 # FINAL SUMMARY
-print(f"\n RUN {run_number} COMPLETE - PRODUCTION-READY")
+print(f"\n RUN {run_number} COMPLETE - PROPERLY BALANCED REWARDS")
 
 print(f"\nFiles saved in: {run_paths['models']}/")
 print()
