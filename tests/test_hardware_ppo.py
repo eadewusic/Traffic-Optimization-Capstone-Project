@@ -54,8 +54,8 @@ print(" HARDWARE PPO MODEL PERFORMANCE TEST")
 print("\nLoading retrained model...")
 
 # Load the final model and its VecNormalize stats
-model_path = "../models/hardware_ppo/run_4b/final_model"
-vecnorm_path = "../models/hardware_ppo/run_4b/vecnormalize.pkl"
+model_path = "../models/hardware_ppo/run_5/final_model"
+vecnorm_path = "../models/hardware_ppo/run_5/vecnormalize.pkl"
 
 if not os.path.exists(model_path + ".zip"):
     print(f"Error: Model not found at {model_path}.zip")
