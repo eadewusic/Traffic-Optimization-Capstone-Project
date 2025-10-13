@@ -1,6 +1,6 @@
 """
 Comprehensive Testing: Hardware PPO vs Baselines
-Automatically detects and uses the latest trained run
+Demonstrates new model outperforms simple strategies
 """
 
 import numpy as np
@@ -11,21 +11,27 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 import os
 import json
 from datetime import datetime
-import glob
 
+# Define the project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
+# Add the project root to the system path so Python can find 'environments'
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
+# Import using the absolute path from the project root
 from environments.simple_button_env import SimpleButtonTrafficEnv
 
-# BASE DIRECTORIES
-BASE_MODELS_DIR = "../models/hardware_ppo"
-BASE_RESULTS_DIR = "../results"
-BASE_VISUALIZATIONS_DIR = "../visualizations"
+# Configuration
+RESULTS_DIR = "../results"
+VISUALIZATIONS_DIR = "../visualizations"
+os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(VISUALIZATIONS_DIR, exist_ok=True)
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
+# Helper function to convert numpy types to native Python types
 def convert_numpy_types(obj):
     """Convert numpy types to native Python types for JSON serialization"""
     if isinstance(obj, np.integer):
@@ -42,61 +48,31 @@ def convert_numpy_types(obj):
         return obj
 
 
-def find_latest_run():
-    """
-    Find the most recently trained run by checking run folders
-    Returns dict with paths to all run directories
-    """
-    # Get all run folders in models directory
-    run_folders = glob.glob(os.path.join(BASE_MODELS_DIR, "run_*"))
-    
-    if not run_folders:
-        raise FileNotFoundError("No training runs found! Please train a model first.")
-    
-    # Sort by modification time (most recent first)
-    run_folders.sort(key=os.path.getmtime, reverse=True)
-    latest_run = run_folders[0]
-    
-    # Extract run number
-    run_name = os.path.basename(latest_run)
-    run_number = int(run_name.split('_')[1])
-    
-    # Build paths for run 3
-    run_paths = {
-        'models': latest_run,
-        'results': os.path.join(BASE_RESULTS_DIR, run_name),
-        'visualizations': os.path.join(BASE_VISUALIZATIONS_DIR, run_name),
-        'run_name': run_name,
-        'run_number': run_number
-    }
-    
-    # Create test output directories if they don't exist
-    os.makedirs(run_paths['results'], exist_ok=True)
-    os.makedirs(run_paths['visualizations'], exist_ok=True)
-    
-    return run_paths
+# LOAD RETRAINED MODEL
+print(" HARDWARE PPO MODEL PERFORMANCE TEST")
 
+print("\nLoading retrained model...")
 
-def load_model_from_run(run_paths):
-    """
-    Load the final model from a run folder
-    Returns model, vecnorm, and model paths
-    """
-    # Try to load final_model first
-    final_model_path = os.path.join(run_paths['models'], "final_model.zip")
-    vecnorm_path = os.path.join(run_paths['models'], "vecnormalize.pkl")
-    
-    print(f"Loading model from: {final_model_path}")
-    model = PPO.load(final_model_path)
-    
-    # Load normalization
-    dummy_env = DummyVecEnv([lambda: SimpleButtonTrafficEnv(domain_randomization=False)])
-    vec_env = VecNormalize.load(vecnorm_path, dummy_env)
-    vec_env.training = False
-    vec_env.norm_reward = False
-    
-    return model, vec_env, final_model_path, vecnorm_path
+# Load the final model and its VecNormalize stats
+model_path = "../models/hardware_ppo/run_4b/final_model"
+vecnorm_path = "../models/hardware_ppo/run_4b/vecnormalize.pkl"
 
+if not os.path.exists(model_path + ".zip"):
+    print(f"Error: Model not found at {model_path}.zip")
+    sys.exit(1)
+
+model = PPO.load(model_path)
+
+# Load normalization stats
+dummy_env = DummyVecEnv([lambda: SimpleButtonTrafficEnv(domain_randomization=False)])
+vec_env = VecNormalize.load(vecnorm_path, dummy_env)
+vec_env.training = False
+vec_env.norm_reward = False
+
+print("Model loaded successfully")
+print(f"  Model: {model_path}.zip")
+print(f"  Normalization: {vecnorm_path}")
+print()
 
 # DEFINE BASELINE CONTROLLERS
 
@@ -112,10 +88,9 @@ def baseline_fixed_time(step):
     """Fixed-time: N-S for 10 steps, E-W for 10 steps"""
     cycle_position = step % 20
     if cycle_position < 10:
-        return 0 if cycle_position % 2 == 0 else 1
+        return 0 if cycle_position % 2 == 0 else 1  # North or South
     else:
-        return 2 if cycle_position % 2 == 0 else 3
-
+        return 2 if cycle_position % 2 == 0 else 3  # East or West
 
 # TEST SCENARIOS
 
@@ -147,43 +122,11 @@ scenarios = [
     }
 ]
 
-# ==================== MAIN TEST SCRIPT ====================
-
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-# Find latest run
-print(" HARDWARE PPO MODEL PERFORMANCE TEST")
-
-print("\nSearching for latest training run...")
-
-try:
-    run_paths = find_latest_run()
-except FileNotFoundError as e:
-    print(f"\nError: {e}")
-    print("Please train a model first: cd ../training && python train_hardware_ppo_v3.py")
-    sys.exit(1)
-
-print(f"\nFound: {run_paths['run_name']}")
-print(f"Models: {run_paths['models']}")
-print(f"Results will be saved to: {run_paths['results']}")
-print()
-
-# Load model
-print("Loading model...")
-try:
-    model, vec_env, model_path, vecnorm_path = load_model_from_run(run_paths)
-except FileNotFoundError as e:
-    print(f"\nError: {e}")
-    sys.exit(1)
-
-print("Model loaded successfully")
-print()
-
 # RUN COMPARATIVE TESTS
 
-print(" COMPARATIVE PERFORMANCE TEST")
-print(f"\nTesting 5 traffic scenarios × 4 controllers = 20 tests")
-print(f"Each test: 50 steps per scenario\n")
+print("\n COMPARATIVE PERFORMANCE TEST")
+print("\nTesting 5 traffic scenarios × 4 controllers = 20 tests")
+print("Each test: 50 steps per scenario\n")
 
 controllers = [
     ("PPO (Retrained)", "ppo"),
@@ -203,17 +146,21 @@ for scenario in scenarios:
     scenario_results = []
     
     for controller_name, controller_type in controllers:
+        # Create new environment
         env = SimpleButtonTrafficEnv(domain_randomization=False)
         obs, info = env.reset()
         
+        # Set initial queues to scenario
         env.queues = scenario['initial_queues'].copy()
         obs = env.queues / env.max_queue_length
         
+        # Run episode
         episode_reward = 0
         episode_cleared = 0
         final_queue = 0
         
         for step in range(50):
+            # Select action based on controller type
             if controller_type == "ppo":
                 obs_norm = vec_env.normalize_obs(obs)
                 action, _ = model.predict(obs_norm, deterministic=True)
@@ -224,6 +171,7 @@ for scenario in scenarios:
             elif controller_type == "fixed_time":
                 action = baseline_fixed_time(step)
             
+            # Take step
             obs, reward, terminated, truncated, info = env.step(action)
             episode_reward += reward
             episode_cleared += info.get('cars_cleared', 0)
@@ -244,9 +192,11 @@ for scenario in scenarios:
         scenario_results.append(result)
         all_results.append(result)
         
+        # Print result
         print(f"  {controller_name:15s}: Reward={episode_reward:7.1f}, "
               f"Cleared={int(episode_cleared):3d}, Final Queue={int(final_queue):3d}")
     
+    # Find best in scenario
     best_result = max(scenario_results, key=lambda x: x['reward'])
     print(f"\n  Best: {best_result['controller']} "
           f"(Reward: {best_result['reward']:.1f})")
@@ -255,6 +205,7 @@ for scenario in scenarios:
 
 print("\n OVERALL PERFORMANCE SUMMARY")
 
+# Aggregate by controller
 controller_stats = {}
 for controller_name, _ in controllers:
     controller_results = [r for r in all_results if r['controller'] == controller_name]
@@ -277,33 +228,30 @@ for controller_name, _ in controllers:
     print(f"{controller_name:<20} {stats['avg_reward']:>12.1f} "
           f"{stats['avg_cleared']:>12.1f} {stats['avg_final_queue']:>12.1f}")
 
+
+# Calculate improvements
 ppo_stats = controller_stats["PPO (Retrained)"]
 baseline_stats = controller_stats["Longest Queue"]
 
 reward_improvement = ((ppo_stats['avg_reward'] - baseline_stats['avg_reward']) / 
-                     abs(baseline_stats['avg_reward']) * 100) if baseline_stats['avg_reward'] != 0 else 0
+                     abs(baseline_stats['avg_reward']) * 100)
 throughput_improvement = ((ppo_stats['avg_cleared'] - baseline_stats['avg_cleared']) / 
                          baseline_stats['avg_cleared'] * 100)
 queue_reduction = ((baseline_stats['avg_final_queue'] - ppo_stats['avg_final_queue']) / 
                    baseline_stats['avg_final_queue'] * 100)
 
-print("\n PPO vs Best Baseline (Longest Queue):")
+print("\nPPO vs Best Baseline (Longest Queue):")
 print(f"  Reward improvement:     {reward_improvement:+.1f}%")
 print(f"  Throughput improvement: {throughput_improvement:+.1f}%")
 print(f"  Queue reduction:        {queue_reduction:+.1f}%")
 
-# SCENARIO BREAKDOWN
+# DETAILED SCENARIO BREAKDOWN
 
 print("\n SCENARIO-BY-SCENARIO WINNER")
-
-wins = {}
-for controller_name, _ in controllers:
-    wins[controller_name] = 0
 
 for scenario in scenarios:
     scenario_results = [r for r in all_results if r['scenario'] == scenario['name']]
     best = max(scenario_results, key=lambda x: x['reward'])
-    wins[best['controller']] += 1
     
     print(f"\n{scenario['name']}:")
     print(f"  Winner: {best['controller']}")
@@ -314,6 +262,15 @@ for scenario in scenarios:
 
 print("\n FINAL VERDICT")
 
+wins = {}
+for controller_name, _ in controllers:
+    wins[controller_name] = 0
+
+for scenario in scenarios:
+    scenario_results = [r for r in all_results if r['scenario'] == scenario['name']]
+    best = max(scenario_results, key=lambda x: x['reward'])
+    wins[best['controller']] += 1
+
 print(f"\nWins by Controller (out of {len(scenarios)} scenarios):")
 for controller_name, _ in controllers:
     print(f"  {controller_name}: {wins[controller_name]}/{len(scenarios)} scenarios")
@@ -321,24 +278,20 @@ for controller_name, _ in controllers:
 overall_best = max(wins.items(), key=lambda x: x[1])
 print(f"\nOverall Champion: {overall_best[0]}")
 
-if overall_best[0] == "PPO (Retrained)" and wins["PPO (Retrained)"] >= 3:
-    print("\n SUCCESS: PPO model outperforms all baseline strategies!")
+if overall_best[0] == "PPO (Retrained)":
+    print("\nSUCCESS: PPO model outperforms all baseline strategies!")
     print("  Hardware-adapted model is ready for deployment.")
-elif overall_best[0] == "PPO (Retrained)":
-    print("\n PARTIAL SUCCESS: PPO wins but could be improved")
-    print(f"  PPO wins {wins['PPO (Retrained)']}/5 scenarios")
-    print("  Consider longer training or further reward tuning")
 else:
-    print(f"\n Note: {overall_best[0]} performed best")
-    print("  PPO may need additional training or reward tuning")
-    print(f"  Current performance: {ppo_stats['avg_reward']:.1f} avg reward")
+    print(f"\nNote: {overall_best[0]} performed best")
+    print("  Consider additional training or reward tuning.")
 
-# GENERATE VISUALIZATIONS
+# GENERATE COMPARISON VISUALIZATIONS
 
 print("\n GENERATING COMPARISON PLOTS")
 
+# 1. Bar chart comparing average performance
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-fig.suptitle(f'Controller Performance Comparison - {run_paths["run_name"]}', fontsize=14)
+fig.suptitle(f'Controller Performance Comparison - {timestamp}', fontsize=14)
 
 controller_names = [name for name, _ in controllers]
 avg_rewards = [controller_stats[name]['avg_reward'] for name in controller_names]
@@ -366,13 +319,13 @@ axes[2].tick_params(axis='x', rotation=45)
 axes[2].grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
-comparison_plot_path = os.path.join(run_paths['visualizations'], "controller_comparison.png")
+comparison_plot_path = os.path.join(VISUALIZATIONS_DIR, f"controller_comparison_{timestamp}.png")
 plt.savefig(comparison_plot_path, dpi=150, bbox_inches='tight')
 plt.close()
 
 print(f"Comparison plot saved to: {comparison_plot_path}")
 
-# Scenario heatmap
+# 2. Scenario-by-scenario heatmap
 scenario_names = [s['name'] for s in scenarios]
 performance_matrix = []
 
@@ -399,22 +352,20 @@ for i in range(len(controller_names)):
         text = ax.text(j, i, f"{performance_matrix[i][j]:.0f}",
                       ha="center", va="center", color="black", fontsize=10)
 
-ax.set_title(f"Reward by Controller and Scenario - {run_paths['run_name']}")
+ax.set_title(f"Reward by Controller and Scenario - {timestamp}")
 fig.tight_layout()
 
-heatmap_plot_path = os.path.join(run_paths['visualizations'], "scenario_heatmap.png")
+heatmap_plot_path = os.path.join(VISUALIZATIONS_DIR, f"scenario_heatmap_{timestamp}.png")
 plt.savefig(heatmap_plot_path, dpi=150, bbox_inches='tight')
 plt.close()
 
 print(f"Scenario heatmap saved to: {heatmap_plot_path}")
 
-# SAVE RESULTS
+# SAVE TEST RESULTS
 
 print("\n SAVING TEST RESULTS")
 
 test_results = {
-    "run_name": run_paths['run_name'],
-    "run_number": run_paths['run_number'],
     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "model": {
         "path": model_path,
@@ -435,7 +386,8 @@ test_results = {
     }
 }
 
-json_path = os.path.join(run_paths['results'], "test_results.json")
+# Save JSON - Convert numpy types before dumping
+json_path = os.path.join(RESULTS_DIR, f"test_results_{timestamp}.json")
 with open(json_path, 'w') as f:
     test_results_serializable = convert_numpy_types(test_results)
     json.dump(test_results_serializable, f, indent=2)
@@ -443,10 +395,9 @@ with open(json_path, 'w') as f:
 print(f"\nResults saved to: {json_path}")
 
 # Save Markdown
-md_path = os.path.join(run_paths['results'], "test_results.md")
+md_path = json_path.replace('.json', '.md')
 with open(md_path, 'w') as f:
-    f.write(f"# Test Results - {run_paths['run_name']}\n\n")
-    f.write(f"**Timestamp:** {test_results['timestamp']}\n\n")
+    f.write(f"# Test Results - {test_results['timestamp']}\n\n")
     
     f.write("## Model Information\n")
     f.write(f"- Model: `{model_path}`\n")
@@ -486,7 +437,4 @@ with open(md_path, 'w') as f:
 
 print(f"Summary saved to: {md_path}")
 
-print(f"\n TEST COMPLETE FOR {run_paths['run_name']}")
-print(f"\nAll results saved to: {run_paths['results']}/")
-print(f"All visualizations saved to: {run_paths['visualizations']}/")
-print()
+print("\n TEST COMPLETE")

@@ -1,0 +1,43 @@
+{
+  "run_name": "run_4a",
+  "run_number": 4,
+  "variant": "4a_simple_network",
+  "timestamp": "2025-10-13 10:53:19",
+  "config": {
+    "total_timesteps": 200000,
+    "domain_randomization": false,
+    "network_architecture": "[64, 64]",
+    "parameters": "~10,000",
+    "batch_size": 64,
+    "entropy_coef": 0.01,
+    "hypothesis": "Simpler architecture generalizes better"
+  },
+  "training": {
+    "best_mean_reward": 1306.0666666666666
+  },
+  "test": {
+    "avg_reward": 326.17498779296875,
+    "std_reward": 51.64591598510742,
+    "avg_cleared": 235.8000030517578,
+    "total_cleared": 2358,
+    "episodes": [
+      304.75,
+      376.5,
+      385.25,
+      216.25,
+      357.0,
+      393.0,
+      316.75,
+      308.0,
+      325.75,
+      278.5
+    ]
+  },
+  "files": {
+    "best_model": "../models/hardware_ppo\\run_4a\\best_model.zip",
+    "final_model": "../models/hardware_ppo\\run_4a\\final_model.zip",
+    "vecnormalize": "../models/hardware_ppo\\run_4a\\vecnormalize.pkl",
+    "logs": "../logs/hardware_ppo\\run_4a",
+    "training_plot": "../visualizations\\run_4a\\training_plot.png"
+  }
+}

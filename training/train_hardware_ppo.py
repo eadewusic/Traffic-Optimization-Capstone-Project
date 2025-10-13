@@ -1,10 +1,12 @@
 """
-Train PPO for Hardware Deployment - VERSION 3 with Run Management
-Features:
-- Automatic run folder creation (run_1, run_2, etc.)
-- Organizes all outputs by run number
-- Balanced reward function (fixes Run 2 failures)
-- Proper experiment tracking
+Train PPO for Hardware Deployment - RUN 4b
+Testing Deeper Network Architecture
+
+Key Changes from Run 4a:
+- Network: [64, 64] → [128, 128, 64] (DEEPER)
+- Everything else stays the same for fair comparison
+
+Hypothesis Test: Does deeper network perform better than simpler [64, 64]?
 """
 
 import gymnasium as gym
@@ -21,19 +23,16 @@ from datetime import datetime
 import sys
 import json
 import glob
-import re
 
-# Define the project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-# Add the project root to the system path
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
 from environments.simple_button_env import SimpleButtonTrafficEnv
 
 # CONFIGURATION
-TOTAL_TIMESTEPS = 150000
+TOTAL_TIMESTEPS = 200000  # Same as Run 4a
 EVAL_FREQ = 5000
 SAVE_FREQ = 10000
 N_EVAL_EPISODES = 15
@@ -44,16 +43,12 @@ BASE_LOGS_DIR = "../logs/hardware_ppo"
 BASE_RESULTS_DIR = "../results"
 BASE_VISUALIZATIONS_DIR = "../visualizations"
 
-# Create base directories
 for dir_path in [BASE_MODELS_DIR, BASE_LOGS_DIR, BASE_RESULTS_DIR, BASE_VISUALIZATIONS_DIR]:
     os.makedirs(dir_path, exist_ok=True)
 
 
 def get_next_run_number():
-    """
-    Automatically detect the next run number by looking at existing run folders
-    """
-    # Check models directory for existing runs
+    """Automatically detect next run number"""
     existing_runs = []
     
     for base_dir in [BASE_MODELS_DIR, BASE_RESULTS_DIR, BASE_VISUALIZATIONS_DIR]:
@@ -61,24 +56,20 @@ def get_next_run_number():
             for item in os.listdir(base_dir):
                 if os.path.isdir(os.path.join(base_dir, item)) and item.startswith('run_'):
                     try:
-                        run_num = int(item.split('_')[1])
+                        run_num = int(item.split('_')[1].replace('a', '').replace('b', ''))
                         existing_runs.append(run_num)
                     except (IndexError, ValueError):
                         continue
     
     if existing_runs:
-        return max(existing_runs) + 1
+        return max(existing_runs)
     else:
-        return 1
+        return 4
 
 
 def create_run_directories(run_number):
-    """
-    Create organized directory structure for this run
-    
-    Returns dict with all paths for this run
-    """
-    run_name = f"run_{run_number}"
+    """Create organized directory structure"""
+    run_name = f"run_{run_number}b"  # 'b' variant
     
     paths = {
         'models': os.path.join(BASE_MODELS_DIR, run_name),
@@ -89,7 +80,6 @@ def create_run_directories(run_number):
         'run_number': run_number
     }
     
-    # Create all directories
     for key, path in paths.items():
         if key not in ['run_name', 'run_number']:
             os.makedirs(path, exist_ok=True)
@@ -98,14 +88,13 @@ def create_run_directories(run_number):
 
 
 def plot_training_results(log_path, save_path, run_info):
-    """Generate and save training visualization plots"""
+    """Generate training visualization plots"""
     try:
         results = load_results(log_path)
         
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle(f'Training Results - {run_info["run_name"]} ({run_info["timestamp"]})', fontsize=16)
+        fig.suptitle(f'Training Results - {run_info["run_name"]} (Deeper Network)', fontsize=16)
         
-        # 1. Episode Rewards Over Time
         x, y = ts2xy(results, 'timesteps')
         axes[0, 0].plot(x, y, alpha=0.6)
         axes[0, 0].set_xlabel('Timesteps')
@@ -113,7 +102,6 @@ def plot_training_results(log_path, save_path, run_info):
         axes[0, 0].set_title('Episode Rewards Over Time')
         axes[0, 0].grid(True, alpha=0.3)
         
-        # 2. Moving Average of Rewards
         window = 50
         if len(y) >= window:
             moving_avg = np.convolve(y, np.ones(window)/window, mode='valid')
@@ -123,7 +111,6 @@ def plot_training_results(log_path, save_path, run_info):
             axes[0, 1].set_title(f'Smoothed Rewards (window={window})')
             axes[0, 1].grid(True, alpha=0.3)
         
-        # 3. Episode Lengths
         if 'l' in results.columns:
             axes[1, 0].plot(results['l'], alpha=0.6, color='green')
             axes[1, 0].set_xlabel('Episodes')
@@ -131,7 +118,6 @@ def plot_training_results(log_path, save_path, run_info):
             axes[1, 0].set_title('Episode Lengths')
             axes[1, 0].grid(True, alpha=0.3)
         
-        # 4. Cumulative Reward
         cumulative_reward = np.cumsum(y)
         axes[1, 1].plot(x, cumulative_reward, color='purple', linewidth=2)
         axes[1, 1].set_xlabel('Timesteps')
@@ -159,50 +145,38 @@ def save_training_summary(results_dict, results_dir):
     with open(json_path, 'w') as f:
         json.dump(results_dict, f, indent=2)
     
-    print(f"\nResults saved to: {json_path}")
-    
     md_path = os.path.join(results_dir, "training_summary.md")
     with open(md_path, 'w') as f:
         f.write(f"# Training Summary - {results_dict['run_name']}\n\n")
+        f.write(f"**Variant:** Deeper Network (Testing Hypothesis)\n")
         f.write(f"**Timestamp:** {results_dict['timestamp']}\n\n")
+        
+        f.write("## Hypothesis Test\n")
+        f.write("Does deeper network architecture perform better?\n")
+        f.write("- Network: [128, 128, 64] (vs 4a's [64, 64])\n")
+        f.write("- All other parameters kept the same\n")
+        f.write("- Batch size: 64 (same as 4a)\n")
+        f.write("- Entropy: 0.01 (same as 4a)\n")
+        f.write("- Domain rand: NO (same as 4a)\n\n")
         
         f.write("## Configuration\n")
         f.write(f"- Total timesteps: {results_dict['config']['total_timesteps']:,}\n")
         f.write(f"- Domain randomization: {results_dict['config']['domain_randomization']}\n")
-        f.write(f"- Eval frequency: {results_dict['config']['eval_frequency']:,}\n")
-        f.write(f"- Reward version: {results_dict['config']['reward_version']}\n\n")
+        f.write(f"- Network parameters: ~28,000 (vs 4a's ~10,000)\n\n")
         
         f.write("## Training Performance\n")
-        f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n")
-        if results_dict['training'].get('convergence_timestep'):
-            f.write(f"- Convergence timestep: {results_dict['training']['convergence_timestep']:,}\n")
-        f.write("\n")
+        f.write(f"- Best mean reward: {results_dict['training']['best_mean_reward']:.2f}\n\n")
         
         if 'test' in results_dict:
             f.write("## Quick Test Results (10 episodes)\n")
             f.write(f"- Average reward: {results_dict['test']['avg_reward']:.1f}\n")
             f.write(f"- Std deviation: {results_dict['test']['std_reward']:.1f}\n")
-            f.write(f"- Average cleared: {results_dict['test']['avg_cleared']:.0f} vehicles\n")
-            f.write(f"- Total cleared: {results_dict['test']['total_cleared']} vehicles\n\n")
-            
-            f.write("## Episode Details\n")
-            for i, reward in enumerate(results_dict['test']['episodes'], 1):
-                f.write(f"- Episode {i}: {reward:.1f}\n")
-            f.write("\n")
-        
-        f.write("## Model Files\n")
-        f.write(f"- Best model: `{results_dict['files']['best_model']}`\n")
-        f.write(f"- Final model: `{results_dict['files']['final_model']}`\n")
-        f.write(f"- VecNormalize: `{results_dict['files']['vecnormalize']}`\n")
-        f.write(f"- Logs: `{results_dict['files']['logs']}`\n")
-        
-        if results_dict['files'].get('training_plot'):
-            f.write(f"- Training plot: `{results_dict['files']['training_plot']}`\n")
+            f.write(f"- Average cleared: {results_dict['test']['avg_cleared']:.0f} vehicles\n\n")
     
     print(f"Summary saved to: {md_path}")
 
 
-def make_env(domain_randomization=True, seed=None, log_dir=None):
+def make_env(domain_randomization=False, seed=None, log_dir=None):
     """Factory function to create environment"""
     def _init():
         env = SimpleButtonTrafficEnv(
@@ -220,7 +194,7 @@ def make_env(domain_randomization=True, seed=None, log_dir=None):
 
 
 def linear_schedule(initial_value, final_value):
-    """Linear learning rate schedule that decays over training"""
+    """Linear learning rate schedule"""
     def schedule(progress_remaining):
         return final_value + progress_remaining * (initial_value - final_value)
     return schedule
@@ -228,7 +202,6 @@ def linear_schedule(initial_value, final_value):
 
 # ==================== MAIN TRAINING SCRIPT ====================
 
-# Get run number and create directories
 run_number = get_next_run_number()
 run_paths = create_run_directories(run_number)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -240,26 +213,24 @@ run_info = {
 }
 
 # PRINT HEADER
-print(f"\n RUN {run_number}: PPO TRAINING FOR HARDWARE DEPLOYMENT")
+print(f" RUN {run_number}b: DEEPER NETWORK TEST")
 print(f"\nRun: {run_paths['run_name']}")
 print(f"Timestamp: {timestamp}")
 print(f"Total timesteps: {TOTAL_TIMESTEPS:,}")
-print(f"Domain randomization: ENABLED")
-print(f"\nReward Function: BALANCED (Version 3)")
-print(f"  - Throughput: +1.5 per car (was +1.0 in Run 2)")
-print(f"  - Queue penalty: -0.25 per car (was -0.4 in Run 2)")
-print(f"  - Ratio: 6:1 (balanced, not too harsh)")
-print(f"\nDirectory Structure:")
-print(f"  Models: {run_paths['models']}")
-print(f"  Logs: {run_paths['logs']}")
-print(f"  Results: {run_paths['results']}")
-print(f"  Visualizations: {run_paths['visualizations']}")
+print(f"\n COMPARING AGAINST RUN {run_number}a:")
+print(f"  Network: [64, 64] → [128, 128, 64] ⭐ DEEPER")
+print(f"  Parameters: ~10,000 → ~28,000 (2.8x increase)")
+print(f"  Batch size: 64 (same)")
+print(f"  Entropy: 0.01 (same)")
+print(f"  Domain rand: NO (same)")
+print(f"  Throughput: 1.75 (same)")
+print(f"\nHypothesis Test: Does deeper network perform better than simpler?")
 print()
 
 # CREATE ENVIRONMENTS
 print("Creating environments...")
 
-train_env = DummyVecEnv([make_env(domain_randomization=True, seed=42, log_dir=run_paths['logs'])])
+train_env = DummyVecEnv([make_env(domain_randomization=False, seed=42, log_dir=run_paths['logs'])])
 train_env = VecNormalize(
     train_env, 
     norm_obs=True,
@@ -278,7 +249,7 @@ eval_env = VecNormalize(
     clip_obs=10.0
 )
 
-print("Environments created")
+print("Environments created (NO domain randomization)")
 print()
 
 # SETUP CALLBACKS
@@ -308,32 +279,32 @@ callbacks = [eval_callback, checkpoint_callback]
 print("Callbacks configured")
 print()
 
-# CREATE PPO MODEL
-print("Initializing PPO model...")
+# CREATE PPO MODEL - DEEPER ARCHITECTURE
+print("Initializing PPO model with DEEPER architecture...")
 
 model = PPO(
     policy="MlpPolicy",
     env=train_env,
     
-    # Learning parameters with decay schedule
+    # Learning parameters (SAME as Run 4a)
     learning_rate=linear_schedule(5e-4, 5e-5),
     n_steps=2048,
-    batch_size=128,
+    batch_size=64,  # SAME as 4a
     n_epochs=10,
     
-    # PPO-specific parameters
+    # PPO-specific
     gamma=0.99,
     gae_lambda=0.95,
     clip_range=0.2,
     clip_range_vf=None,
     normalize_advantage=True,
     
-    # Entropy and value function coefficients
-    ent_coef=0.02,
+    # Entropy (SAME as 4a)
+    ent_coef=0.01,  # SAME as 4a
     vf_coef=0.5,
     max_grad_norm=0.5,
     
-    # Other parameters
+    # Other
     use_sde=False,
     sde_sample_freq=-1,
     target_kl=0.02,
@@ -341,11 +312,11 @@ model = PPO(
     # Logging
     tensorboard_log=run_paths['logs'],
     
-    # Network architecture
+    # DEEPER Network architecture
     policy_kwargs=dict(
         net_arch=dict(
-            pi=[128, 64, 32],
-            vf=[128, 64, 32]
+            pi=[128, 128, 64],  # DEEPER (vs 4a's [64, 64])
+            vf=[128, 128, 64]   # DEEPER (vs 4a's [64, 64])
         ),
         activation_fn=torch.nn.ReLU
     ),
@@ -355,12 +326,19 @@ model = PPO(
 )
 
 print("Model created successfully")
+print(f"\nModel details:")
+print(f"  Policy: MLP")
+print(f"  Architecture: [4 inputs] → [128] → [128] → [64] → [4 outputs]")
+print(f"  Parameters: ~28,000 (2.8x more than Run 4a)")
+print(f"  Batch size: 64 (same as 4a)")
+print(f"  Entropy: 0.01 (same as 4a)")
+print(f"  Device: {model.device}")
 print()
 
 # TRAIN MODEL
 print(" STARTING TRAINING")
-print(f"\nProgress will be displayed below.")
-print(f"Expected training time: ~1.5-2 hours\n")
+print(f"\nTesting hypothesis: Does deeper network beat simpler [64, 64]?")
+print(f"Expected training time: ~2 hours\n")
 
 try:
     model.learn(
@@ -397,12 +375,10 @@ except Exception as e:
     traceback.print_exc()
     sys.exit(1)
 
-# QUICK TEST OF TRAINED MODEL
+# QUICK TEST
 print("\n TESTING TRAINED MODEL")
 
 test_env = SimpleButtonTrafficEnv(domain_randomization=False)
-obs, info = test_env.reset()
-
 total_reward = 0
 total_cleared = 0
 episode_rewards = []
@@ -438,16 +414,14 @@ print(f"\nTest Results:")
 print(f"  Average reward:  {avg_reward:7.1f}")
 print(f"  Reward std dev:  {std_reward:7.1f}")
 print(f"  Average cleared: {int(avg_cleared):3d} vehicles")
-print(f"  Total cleared:   {int(total_cleared):3d} vehicles")
 
-# GENERATE TRAINING PLOTS
+# GENERATE PLOTS
 print("\n GENERATING TRAINING PLOTS")
-
 training_plot_path = plot_training_results(run_paths['logs'], run_paths['visualizations'], run_info)
 if training_plot_path:
     print(f"Training plot saved to: {training_plot_path}")
 
-# SAVE TRAINING SUMMARY
+# SAVE SUMMARY
 print("\n SAVING TRAINING SUMMARY")
 
 best_mean_reward = eval_callback.best_mean_reward if hasattr(eval_callback, 'best_mean_reward') else 0.0
@@ -455,24 +429,19 @@ best_mean_reward = eval_callback.best_mean_reward if hasattr(eval_callback, 'bes
 training_results = {
     "run_name": run_paths['run_name'],
     "run_number": run_paths['run_number'],
+    "variant": "4b_deeper_network",
     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "config": {
         "total_timesteps": TOTAL_TIMESTEPS,
-        "domain_randomization": True,
-        "eval_frequency": EVAL_FREQ,
-        "n_eval_episodes": N_EVAL_EPISODES,
-        "reward_version": "v3_balanced",
-        "improvements": {
-            "network_architecture": "[128, 64, 32]",
-            "entropy_coefficient": 0.02,
-            "batch_size": 128,
-            "learning_rate": "5e-4 → 5e-5 (decay)",
-            "reward_ratio": "6:1 (throughput:queue)"
-        }
+        "domain_randomization": False,
+        "network_architecture": "[128, 128, 64]",
+        "parameters": "~28,000",
+        "batch_size": 64,
+        "entropy_coef": 0.01,
+        "hypothesis": "Deeper network performs better than simpler architecture"
     },
     "training": {
-        "best_mean_reward": float(best_mean_reward),
-        "convergence_timestep": None
+        "best_mean_reward": float(best_mean_reward)
     },
     "test": {
         "avg_reward": float(avg_reward),
@@ -493,16 +462,9 @@ training_results = {
 save_training_summary(training_results, run_paths['results'])
 
 # FINAL SUMMARY
-print(f"\n RUN {run_number} COMPLETE")
+print(f"\n RUN {run_number}b COMPLETE - DEEPER NETWORK")
 
-print(f"\nFiles saved in:")
-print(f"  {run_paths['models']}/")
-print(f"    ├── best_model.zip")
-print(f"    ├── final_model.zip")
-print(f"    └── vecnormalize.pkl")
-print(f"  {run_paths['results']}/")
-print(f"    ├── training_summary.json")
-print(f"    └── training_summary.md")
-print(f"  {run_paths['visualizations']}/")
-print(f"    └── training_plot.png")
+print(f"\nFiles saved in: {run_paths['models']}/")
+print(f"\nNext: Compare Run 4a vs Run 4b results!")
+print(f"Run the comparison script to see which architecture won!")
 print()

@@ -1,0 +1,43 @@
+{
+  "run_name": "run_4b",
+  "run_number": 4,
+  "variant": "4b_deeper_network",
+  "timestamp": "2025-10-13 12:43:44",
+  "config": {
+    "total_timesteps": 200000,
+    "domain_randomization": false,
+    "network_architecture": "[128, 128, 64]",
+    "parameters": "~28,000",
+    "batch_size": 64,
+    "entropy_coef": 0.01,
+    "hypothesis": "Deeper network performs better than simpler architecture"
+  },
+  "training": {
+    "best_mean_reward": 1293.0333333333333
+  },
+  "test": {
+    "avg_reward": 339.75,
+    "std_reward": 30.409908294677734,
+    "avg_cleared": 236.0,
+    "total_cleared": 2360,
+    "episodes": [
+      286.0,
+      349.5,
+      318.5,
+      310.5,
+      316.75,
+      350.0,
+      386.75,
+      336.25,
+      365.75,
+      377.5
+    ]
+  },
+  "files": {
+    "best_model": "../models/hardware_ppo\\run_4b\\best_model.zip",
+    "final_model": "../models/hardware_ppo\\run_4b\\final_model.zip",
+    "vecnormalize": "../models/hardware_ppo\\run_4b\\vecnormalize.pkl",
+    "logs": "../logs/hardware_ppo\\run_4b",
+    "training_plot": "../visualizations\\run_4b\\training_plot.png"
+  }
+}
