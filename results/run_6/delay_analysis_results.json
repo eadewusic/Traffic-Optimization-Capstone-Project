@@ -1,0 +1,118 @@
+{
+  "run": "run_6",
+  "model": "../models/hardware_ppo/run_6/final_model",
+  "timestamp": "2025-10-14 03:20:47",
+  "scenarios": [
+    {
+      "name": "Balanced Traffic",
+      "initial_queues": [
+        5.0,
+        5.0,
+        5.0,
+        5.0
+      ],
+      "ppo": {
+        "vehicles_cleared": 159.0,
+        "total_wait_time": 221.0,
+        "avg_delay_per_vehicle": 1.389937162399292
+      },
+      "baseline": {
+        "vehicles_cleared": 50.0,
+        "total_wait_time": 2770.0,
+        "avg_delay_per_vehicle": 55.400001525878906
+      },
+      "delay_reduction_percent": 97.4910888671875,
+      "exceeds_target": true
+    },
+    {
+      "name": "North Heavy Congestion",
+      "initial_queues": [
+        15.0,
+        3.0,
+        2.0,
+        4.0
+      ],
+      "ppo": {
+        "vehicles_cleared": 123.0,
+        "total_wait_time": 161.0,
+        "avg_delay_per_vehicle": 1.3089430332183838
+      },
+      "baseline": {
+        "vehicles_cleared": 49.0,
+        "total_wait_time": 2451.0,
+        "avg_delay_per_vehicle": 50.020408630371094
+      },
+      "delay_reduction_percent": 97.3831787109375,
+      "exceeds_target": true
+    },
+    {
+      "name": "E-W Rush Hour",
+      "initial_queues": [
+        2.0,
+        3.0,
+        12.0,
+        11.0
+      ],
+      "ppo": {
+        "vehicles_cleared": 156.0,
+        "total_wait_time": 220.0,
+        "avg_delay_per_vehicle": 1.4102563858032227
+      },
+      "baseline": {
+        "vehicles_cleared": 102.0,
+        "total_wait_time": 1938.0,
+        "avg_delay_per_vehicle": 19.0
+      },
+      "delay_reduction_percent": 92.57759857177734,
+      "exceeds_target": true
+    },
+    {
+      "name": "Random Pattern",
+      "initial_queues": [
+        8.0,
+        2.0,
+        10.0,
+        4.0
+      ],
+      "ppo": {
+        "vehicles_cleared": 114.0,
+        "total_wait_time": 150.0,
+        "avg_delay_per_vehicle": 1.3157894611358643
+      },
+      "baseline": {
+        "vehicles_cleared": 58.0,
+        "total_wait_time": 2620.0,
+        "avg_delay_per_vehicle": 45.17241287231445
+      },
+      "delay_reduction_percent": 97.08718872070312,
+      "exceeds_target": true
+    },
+    {
+      "name": "Single Lane Blocked",
+      "initial_queues": [
+        18.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "ppo": {
+        "vehicles_cleared": 170.0,
+        "total_wait_time": 265.0,
+        "avg_delay_per_vehicle": 1.558823585510254
+      },
+      "baseline": {
+        "vehicles_cleared": 55.0,
+        "total_wait_time": 2329.0,
+        "avg_delay_per_vehicle": 42.345455169677734
+      },
+      "delay_reduction_percent": 96.31879425048828,
+      "exceeds_target": true
+    }
+  ],
+  "overall_summary": {
+    "avg_ppo_delay": 1.3967498540878296,
+    "avg_baseline_delay": 42.387657165527344,
+    "overall_reduction_percent": 96.70481872558594,
+    "exceeds_target": true
+  }
+}
