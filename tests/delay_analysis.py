@@ -1,3 +1,4 @@
+#!/usr/bin/env
 """
 Delay Analysis Script - Run 6 - STATISTICAL SIGNIFICANCE
 Multiple trials with proper vehicle wait time tracking and statistical analysis

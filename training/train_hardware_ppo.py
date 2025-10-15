@@ -1,3 +1,4 @@
+#!/usr/bin/env
 """
 Train PPO for Hardware Deployment - RUN 6
 PROPERLY BALANCED REWARDS - Positive for Good Performance

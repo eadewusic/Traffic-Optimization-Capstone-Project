@@ -1,3 +1,4 @@
+#!/usr/bin/env
 """
 Simplified Button Traffic Environment - RUN 6
 PROPERLY BALANCED REWARD FUNCTION - Positive for Good Performance

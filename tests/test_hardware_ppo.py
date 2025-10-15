@@ -1,3 +1,4 @@
+#!/usr/bin/env
 """
 Comprehensive Testing: Hardware PPO vs Baselines
 """
