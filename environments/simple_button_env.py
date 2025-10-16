@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/usr/bin/env python3
 """
 Simplified Button Traffic Environment - RUN 6
 PROPERLY BALANCED REWARD FUNCTION - Positive for Good Performance
