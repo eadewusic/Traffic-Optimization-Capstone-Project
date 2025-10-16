@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/usr/bin/env python3
 """
 Comprehensive Testing: Hardware PPO vs Baselines
 """
