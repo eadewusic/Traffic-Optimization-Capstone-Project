@@ -47,10 +47,10 @@ import time
 
 # Define all LED pins for all 4 modules
 LED_MODULES = {
-    "North": {"R": 14, "Y": 4, "G": 18},
-    "East":  {"R": 23, "Y": 24, "G": 22},
-    "South": {"R": 5,  "Y": 6,  "G": 13},
-    "West":  {"R": 16, "Y": 20, "G": 21}
+    "North": {"R": 16, "Y": 20, "G": 21},
+    "East":  {"R": 5,  "Y": 6,  "G": 13},
+    "South": {"R": 23, "Y": 24, "G": 22},
+    "West":  {"R": 14, "Y": 4, "G": 18}
 }
 
 GPIO.setmode(GPIO.BCM)
