@@ -11,6 +11,7 @@ Pinout (BCM):
   East: GPIO 25 (Pin 22)
   South: GPIO 27 (Pin 13)
   West: GPIO 8 (Pin 24)
+  Common GND: Pin 39 (GND)
 """
 
 import RPi.GPIO as GPIO
