@@ -59,7 +59,6 @@ def extract_run_name_from_path(model_path):
     return None
 
 
-# Helper function to convert numpy types
 def convert_numpy_types(obj):
     """Convert numpy types to native Python types for JSON serialization"""
     if isinstance(obj, np.integer):
@@ -76,16 +75,61 @@ def convert_numpy_types(obj):
         return obj
 
 
+# BASELINE CONTROLLERS
+
+def baseline_longest_queue(obs):
+    """
+    Always serve the longest queue.
+    
+    Strategy: Find which individual lane has most cars, serve its direction.
+    
+    Args:
+        obs: [N, S, E, W] queue lengths
+    
+    Returns:
+        0 (N/S green) or 1 (E/W green)
+    """
+    longest_idx = int(np.argmax(obs))
+    return 0 if longest_idx in [0, 1] else 1
+
+
+def baseline_round_robin(step):
+    """
+    Alternate between N/S and E/W every step.
+    
+    Simple time-sharing: gives each direction equal opportunity.
+    
+    Args:
+        step: Current timestep
+    
+    Returns:
+        0 (N/S green) or 1 (E/W green)
+    """
+    return step % 2
+
+
+def baseline_fixed_time(step):
+    """
+    Fixed-time controller: 10 steps N/S green, 10 steps E/W green, repeat.
+    
+    Classic traffic light timing strategy.
+    
+    Args:
+        step: Current timestep
+    
+    Returns:
+        0 (N/S green) or 1 (E/W green)
+    """
+    return 0 if (step % 20) < 10 else 1
+
+
 # LOAD RETRAINED MODEL
 
-print(" HARDWARE PPO MODEL PERFORMANCE TEST")
+print("HARDWARE PPO MODEL PERFORMANCE TEST")
 
 print("\nLoading retrained model...")
 
-# Option 1: Specify run manually (change this to test different runs)
-# RUN_TO_TEST = "run_5"  # Change to "run_6" after training Run 6
-
-# Option 2: Auto-detect latest run (recommended)
+# Auto-detect latest run
 RUN_TO_TEST = get_latest_run_folder()
 
 if RUN_TO_TEST is None:
@@ -139,24 +183,6 @@ print(f"  Model: {model_path}.zip")
 print(f"  Normalization: {vecnorm_path}")
 print()
 
-# DEFINE BASELINE CONTROLLERS
-
-def baseline_longest_queue(obs):
-    """Simple baseline: Always pick longest queue"""
-    return int(np.argmax(obs))
-
-def baseline_round_robin(step):
-    """Round-robin: Cycle through lanes"""
-    return step % 4
-
-def baseline_fixed_time(step):
-    """Fixed-time: N-S for 10 steps, E-W for 10 steps"""
-    cycle_position = step % 20
-    if cycle_position < 10:
-        return 0 if cycle_position % 2 == 0 else 1
-    else:
-        return 2 if cycle_position % 2 == 0 else 3
-
 # TEST SCENARIOS
 
 scenarios = [
@@ -191,7 +217,7 @@ scenarios = [
 
 print("\n COMPARATIVE PERFORMANCE TEST")
 print(f"\nTesting: {RUN_TO_TEST}")
-print("Testing 5 traffic scenarios × 4 controllers = 20 tests")
+print("Testing 5 traffic scenarios x 4 controllers = 20 tests")
 print("Each test: 50 steps per scenario\n")
 
 controllers = [
@@ -227,7 +253,8 @@ for scenario in scenarios:
                 obs_norm = vec_env.normalize_obs(obs)
                 action, _ = model.predict(obs_norm, deterministic=True)
             elif controller_type == "longest":
-                action = baseline_longest_queue(obs)
+                # Pass actual queue values, not normalized
+                action = baseline_longest_queue(obs * env.max_queue_length)
             elif controller_type == "round_robin":
                 action = baseline_round_robin(step)
             elif controller_type == "fixed_time":
@@ -253,7 +280,7 @@ for scenario in scenarios:
         scenario_results.append(result)
         all_results.append(result)
         
-        print(f"  {controller_name:15s}: Reward={episode_reward:7.1f}, "
+        print(f"  {controller_name:30s}: Reward={episode_reward:7.1f}, "
               f"Cleared={int(episode_cleared):3d}, Final Queue={int(final_queue):3d}")
     
     best_result = max(scenario_results, key=lambda x: x['reward'])
@@ -279,11 +306,11 @@ for controller_name, _ in controllers:
     }
 
 print("\nAverage Performance Across All 5 Scenarios:")
-print(f"{'Controller':<20} {'Avg Reward':>12} {'Avg Cleared':>12} {'Final Queue':>12}")
+print(f"{'Controller':<35} {'Avg Reward':>12} {'Avg Cleared':>12} {'Final Queue':>12}")
 
 for controller_name, _ in controllers:
     stats = controller_stats[controller_name]
-    print(f"{controller_name:<20} {stats['avg_reward']:>12.1f} "
+    print(f"{controller_name:<35} {stats['avg_reward']:>12.1f} "
           f"{stats['avg_cleared']:>12.1f} {stats['avg_final_queue']:>12.1f}")
 
 ppo_stats = controller_stats["PPO (Retrained)"]
@@ -296,7 +323,7 @@ throughput_improvement = ((ppo_stats['avg_cleared'] - baseline_stats['avg_cleare
 queue_reduction = ((baseline_stats['avg_final_queue'] - ppo_stats['avg_final_queue']) / 
                    baseline_stats['avg_final_queue'] * 100)
 
-print("\nPPO vs Best Baseline (Longest Queue):")
+print("\n PPO vs Best Baseline (Longest Queue):")
 print(f"  Reward improvement:     {reward_improvement:+.1f}%")
 print(f"  Throughput improvement: {throughput_improvement:+.1f}%")
 print(f"  Queue reduction:        {queue_reduction:+.1f}%")
