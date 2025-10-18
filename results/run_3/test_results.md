@@ -1,29 +1,30 @@
 # Test Results - run_3
 
-**Timestamp:** 2025-10-13 10:00:55
+**Timestamp:** 2025-10-18 23:00:33
 
 ## Model Information
-- Model: `../models/hardware_ppo\run_3\final_model.zip`
-- VecNormalize: `../models/hardware_ppo\run_3\vecnormalize.pkl`
+- Run: run_3
+- Model: `../models/hardware_ppo/run_3/best_model`
+- VecNormalize: `../models/hardware_ppo/run_3/vecnormalize.pkl`
 
 ## Overall Performance
 
 | Controller | Avg Reward | Avg Cleared | Final Queue |
 |------------|------------|-------------|-------------|
-| PPO (Retrained) | 122.0 | 242.2 | 18.4 |
-| Longest Queue | 255.6 | 246.8 | 22.6 |
-| Round Robin | -21.9 | 234.4 | 30.6 |
-| Fixed Time | -143.7 | 221.4 | 41.2 |
+| PPO (Retrained) | -323.6 | 69.6 | 43.2 |
+| Longest Queue | 569.0 | 144.0 | 3.0 |
+| Round Robin | 462.5 | 135.4 | 5.2 |
+| Fixed Time | 228.4 | 125.2 | 12.8 |
 
 ## PPO vs Longest Queue Baseline
-- Reward improvement: -52.3%
-- Throughput improvement: -1.9%
-- Queue reduction: +18.6%
+- Reward improvement: -156.9%
+- Throughput improvement: -51.7%
+- Queue reduction: -1340.0%
 
 ## Wins by Controller
-- PPO (Retrained): 1/5 scenarios
+- PPO (Retrained): 0/5 scenarios
 - Longest Queue: 4/5 scenarios
-- Round Robin: 0/5 scenarios
+- Round Robin: 1/5 scenarios
 - Fixed Time: 0/5 scenarios
 
 ## Champion: Longest Queue
@@ -31,34 +32,34 @@
 ## Scenario Results
 
 ### Balanced Traffic
-- PPO (Retrained): Reward=175.2, Cleared=243, Queue=7
-- Longest Queue: Reward=310.5, Cleared=239, Queue=29
-- Round Robin: Reward=-29.2, Cleared=241, Queue=52
-- Fixed Time: Reward=-81.5, Cleared=214, Queue=36
+- PPO (Retrained): Reward=-320.3, Cleared=68, Queue=43
+- Longest Queue: Reward=552.6, Cleared=137, Queue=0
+- Round Robin: Reward=430.9, Cleared=128, Queue=3
+- Fixed Time: Reward=162.0, Cleared=108, Queue=18
 
 ### North Heavy Congestion
-- PPO (Retrained): Reward=286.0, Cleared=220, Queue=8
-- Longest Queue: Reward=191.8, Cleared=250, Queue=37
-- Round Robin: Reward=78.8, Cleared=222, Queue=17
-- Fixed Time: Reward=-110.8, Cleared=223, Queue=48
+- PPO (Retrained): Reward=-324.6, Cleared=61, Queue=44
+- Longest Queue: Reward=620.0, Cleared=161, Queue=4
+- Round Robin: Reward=505.2, Cleared=145, Queue=8
+- Fixed Time: Reward=313.2, Cleared=152, Queue=18
 
 ### East-West Rush Hour
-- PPO (Retrained): Reward=37.0, Cleared=249, Queue=23
-- Longest Queue: Reward=242.2, Cleared=247, Queue=8
-- Round Robin: Reward=54.2, Cleared=230, Queue=26
-- Fixed Time: Reward=-227.2, Cleared=225, Queue=46
+- PPO (Retrained): Reward=-312.0, Cleared=86, Queue=40
+- Longest Queue: Reward=571.7, Cleared=144, Queue=5
+- Round Robin: Reward=421.0, Cleared=126, Queue=5
+- Fixed Time: Reward=199.2, Cleared=128, Queue=4
 
 ### Random Traffic Pattern
-- PPO (Retrained): Reward=156.5, Cleared=250, Queue=25
-- Longest Queue: Reward=279.5, Cleared=248, Queue=10
-- Round Robin: Reward=-52.8, Cleared=239, Queue=29
-- Fixed Time: Reward=-214.8, Cleared=230, Queue=43
+- PPO (Retrained): Reward=-427.0, Cleared=55, Queue=43
+- Longest Queue: Reward=509.6, Cleared=127, Queue=3
+- Round Robin: Reward=547.2, Cleared=158, Queue=4
+- Fixed Time: Reward=161.9, Cleared=107, Queue=13
 
 ### Single Lane Blocked
-- PPO (Retrained): Reward=-45.0, Cleared=249, Queue=29
-- Longest Queue: Reward=254.0, Cleared=250, Queue=29
-- Round Robin: Reward=-160.2, Cleared=240, Queue=29
-- Fixed Time: Reward=-84.2, Cleared=215, Queue=33
+- PPO (Retrained): Reward=-233.9, Cleared=78, Queue=46
+- Longest Queue: Reward=591.2, Cleared=151, Queue=3
+- Round Robin: Reward=407.8, Cleared=120, Queue=6
+- Fixed Time: Reward=305.5, Cleared=131, Queue=11
 
 ## Visualizations
 - Comparison plot: `../visualizations\run_3\controller_comparison.png`

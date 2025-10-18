@@ -130,7 +130,7 @@ print("HARDWARE PPO MODEL PERFORMANCE TEST")
 print("\nLoading retrained model...")
 
 # Auto-detect latest run
-RUN_TO_TEST = get_latest_run_folder()
+RUN_TO_TEST = "run_1"
 
 if RUN_TO_TEST is None:
     print("Error: No run folders found in ../models/hardware_ppo/")
@@ -140,8 +140,8 @@ if RUN_TO_TEST is None:
 print(f"Testing run: {RUN_TO_TEST}")
 
 # Model paths
-model_path = f"../models/hardware_ppo/{RUN_TO_TEST}/final_model"
-vecnorm_path = f"../models/hardware_ppo/{RUN_TO_TEST}/vecnormalize.pkl"
+model_path = f"../models/hardware_ppo/{RUN_TO_TEST}/hardware_ppo_final_20251012_164818.zip"
+vecnorm_path = f"../models/hardware_ppo/{RUN_TO_TEST}/hardware_ppo_final_20251012_164818_vecnormalize.pkl"
 
 # Check if best_model exists (use it if available, otherwise use final_model)
 best_model_path = f"../models/hardware_ppo/{RUN_TO_TEST}/best_model"
