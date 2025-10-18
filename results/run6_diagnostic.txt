@@ -1,0 +1,87 @@
+﻿RUN 6 FAILURE ANALYSIS
+
+Diagnosing why PPO didn't beat baseline...
+
+DIAGNOSTIC 1: ACTION SELECTION COMPARISON
+Scenario: North Heavy Congestion [15, 3, 2, 4]
+
+Step   Queues (NESW)        PPO Action   Baseline     Match?
+0      [15.0,  2.0,  3.0,  4.0]  N/S          N/S          YES
+1      [13.0,  2.0,  3.0,  4.0]  N/S          N/S          YES
+2      [ 8.0,  2.0,  2.0,  4.0]  N/S          N/S          YES
+3      [ 4.0,  2.0,  0.0,  5.0]  N/S          E/W          NO
+4      [ 3.0,  5.0,  0.0,  5.0]  E/W          N/S          NO
+5      [ 3.0,  0.0,  3.0,  0.0]  N/S          N/S          YES
+6      [ 0.0,  0.0,  0.0,  1.0]  E/W          E/W          YES
+7      [ 0.0,  0.0,  0.0,  3.0]  E/W          E/W          YES
+8      [ 0.0,  0.0,  0.0,  1.0]  E/W          E/W          YES
+9      [ 2.0,  2.0,  0.0,  2.0]  E/W          N/S          NO
+
+Action Agreement Rate: 65.0%
+
+ DIAGNOSTIC 2: REWARD FUNCTION ANALYSIS
+
+Baseline policy gets average reward: 595.0
+
+This means:
+ FINDING 2: Reward function ALREADY rewards baseline heavily
+    Current reward function is 'baseline-aligned'
+    PPO has no incentive to do better than baseline
+    Need to restructure rewards to encourage superior strategies
+
+ DIAGNOSTIC 3: EXPLORATION ANALYSIS
+
+PPO Action Usage (first 20 steps):
+  Action 0 (N/S Green): 10/20 (50.0%)
+  Action 1 (E/W Green): 10/20 (50.0%)
+
+ FINDING 3: PPO avoids unproductive actions
+
+ DIAGNOSTIC 4: TRAINING STABILITY
+
+Training Progression:
+  Initial reward: 1960.9
+  Best reward: 2040.3
+  Final reward: 2023.6
+  Improvement: 79.3 (4.0%)
+  Late-training stability (std): 43.6
+
+ FINDING 4: Minimal learning occurred
+    Only 79.3 point improvement over training
+    Possible causes:
+     - Learning rate too low
+     - Reward signal too weak
+     - Training too short
+     - Environment stochasticity drowning signal
+
+ DIAGNOSTIC 5: ENVIRONMENT STOCHASTICITY
+
+Same policy, different seeds: std = 31.4
+
+ FINDING 5: High environment stochasticity
+    Random traffic arrivals create huge variance
+    Signal-to-noise ratio is poor for learning
+    Need to reduce stochasticity or train much longer
+
+ SUMMARY - ROOT CAUSES
+
+Based on diagnostics, Run 6 failed because:
+  2. Reward function already favors baseline strategy
+  4. Insufficient learning/improvement over training
+  5. High environment noise drowns learning signal
+
+ RECOMMENDATIONS FOR RUN 7
+
+1. REWARD REDESIGN (Critical)
+   - Baseline gets high rewards with current function
+   - Need to reward BETTER-than-baseline behavior
+   - Suggestion: Add 'beat baseline' bonus in reward
+
+2. REDUCE STOCHASTICITY (Critical)
+   - Environment noise too high for effective learning
+   - Make traffic arrivals more predictable
+   - Or train 5-10x longer to overcome noise
+
+3. TRAIN LONGER
+   - 250k steps showed minimal improvement
+   - Recommend 1M steps minimum
