@@ -8,18 +8,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-print("=" * 70)
 print("RUN 6 TRAINING LOG ANALYSIS")
-print("=" * 70)
 
 LOGS_DIR = "../logs/hardware_ppo/run_6"
 VIZ_DIR = "../visualizations/run_6"
 os.makedirs(VIZ_DIR, exist_ok=True)
 
 # PART 1: EVALUATION ANALYSIS
-print("\n" + "=" * 70)
-print("EVALUATION METRICS ANALYSIS")
-print("=" * 70)
+print("\n EVALUATION METRICS ANALYSIS")
 
 eval_path = os.path.join(LOGS_DIR, "evaluations.npz")
 data = np.load(eval_path)
@@ -68,9 +64,7 @@ print(f"  Best → Final: {best_to_final:+.1f}%")
 print(f"  Initial → Final: {initial_to_final:+.1f}%")
 
 # Diagnose issues
-print("\n" + "-" * 70)
-print("DIAGNOSIS:")
-print("-" * 70)
+print("\n DIAGNOSIS:")
 
 if best_to_final < -10:
     print("WARNING: Significant performance degradation after best checkpoint!")
@@ -105,9 +99,7 @@ if std_rewards[best_idx] > mean_rewards[best_idx] * 0.3:
     print("  → Policy is inconsistent")
 
 # PART 2: VISUALIZE EVALUATION CURVE
-print("\n" + "=" * 70)
-print("GENERATING EVALUATION CURVE")
-print("=" * 70)
+print("\n GENERATING EVALUATION CURVE")
 
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
 
@@ -149,9 +141,7 @@ print(f"\nEvaluation curve saved to: {eval_plot_path}")
 plt.close()
 
 # PART 3: MONITOR LOG ANALYSIS
-print("\n" + "=" * 70)
-print("EPISODE TRAINING DATA ANALYSIS")
-print("=" * 70)
+print("\n EPISODE TRAINING DATA ANALYSIS")
 
 monitor_path = os.path.join(LOGS_DIR, "monitor.monitor.csv")
 
@@ -207,9 +197,7 @@ except Exception as e:
     print(f"\nError reading monitor file: {e}")
 
 # PART 4: FINAL RECOMMENDATIONS
-print("\n" + "=" * 70)
-print("RECOMMENDATIONS")
-print("=" * 70)
+print("\n RECOMMENDATIONS")
 
 print("\n1. IMMEDIATE ACTIONS:")
 
@@ -248,12 +236,4 @@ else:
     print("   - PPO shows competitive or superior performance")
     print("   - Emphasize learned adaptability vs fixed heuristic")
 
-print("\n" + "=" * 70)
-print("ANALYSIS COMPLETE")
-print("=" * 70)
-
-print("\nNext steps:")
-print("1. View generated plots in: {}".format(VIZ_DIR))
-print("2. Run TensorBoard for detailed metrics")
-print("3. Test all checkpoints to find best performer")
-print("4. Make deployment decision based on findings")
+print("\n ANALYSIS COMPLETE")
