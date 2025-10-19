@@ -67,7 +67,7 @@ class ComprehensiveEvaluator:
             
             # MEASURE RESPONSE TIME
             if controller_type == 'ppo':
-                obs_norm = vec_env.normalize_obs(obs / env.max_queue_length)
+                obs_norm = vec_env.normalize_obs(obs)
                 
                 start_time = time.perf_counter()
                 action, _ = model.predict(obs_norm, deterministic=True)
