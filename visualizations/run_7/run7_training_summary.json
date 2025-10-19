@@ -1,0 +1,23 @@
+{
+  "run": "run_7",
+  "timestamp": "2025-10-19 07:44:43",
+  "training": {
+    "total_steps": 1502000,
+    "initial_reward": 1703.3400453000002,
+    "best_reward": 2066.8789539,
+    "best_step": 778000,
+    "final_reward": 2041.4755439,
+    "improvement": 363.5389085999998,
+    "improvement_pct": 21.342708967778165,
+    "final_std": 17.887782600686
+  },
+  "assessment": {
+    "strong_learning": false,
+    "ready_for_testing": true
+  },
+  "next_steps": [
+    "Test Run 7 vs Baseline in Run7TrafficEnv",
+    "Both controllers in SAME environment",
+    "Fair comparison with comparative reward"
+  ]
+}
