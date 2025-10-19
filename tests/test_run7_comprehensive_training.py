@@ -96,7 +96,6 @@ for scenario in scenarios:
     for controller_name, controller_type in controllers:
         env = Run7TrafficEnv()
         obs, _ = env.reset(options={'initial_queues': scenario['queues']})
-        obs = obs / env.max_queue_length
         
         episode_reward = 0
         episode_cleared = 0
@@ -107,15 +106,18 @@ for scenario in scenarios:
                 action, _ = model.predict(obs_norm, deterministic=True)
             elif controller_type == "longest":
                 action = baseline_longest_queue(obs * env.max_queue_length)
+                # Baseline needs raw values, so multiply back
             elif controller_type == "round_robin":
                 action = baseline_round_robin(step)
             elif controller_type == "fixed_time":
                 action = baseline_fixed_time(step)
             
             obs, reward, term, trunc, info = env.step(action)
+            # obs is raw from environment
+            # Next iteration, vec_env.normalize_obs(obs) normalizes it
             episode_reward += reward
             episode_cleared += info.get('cars_cleared', 0)
-        
+
         final_queue = np.sum(env.queues)
         
         result = {
