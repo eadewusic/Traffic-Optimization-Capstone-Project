@@ -8,28 +8,28 @@ and LED functionality on Raspberry Pi.
 
 LED MODULES (12 outputs):
   North Module:
-    Red:    GPIO 14 (Pin 8)  → Module R pin
-    Yellow: GPIO 4 (Pin 7) → Module Y pin
-    Green:  GPIO 18 (Pin 12) → Module G pin
-    GND:    Pin 9 (GND)      → Module GND pin
+    Red:    GPIO 16 (Pin 36)  → Module R pin
+    Yellow: GPIO 20 (Pin 38) → Module Y pin
+    Green:  GPIO 21 (Pin 40) → Module G pin
+    GND:    Pin 34 (GND)      → Module GND pin
   
   East Module:
-    Red:    GPIO 23 (Pin 16) → Module R pin
-    Yellow: GPIO 24 (Pin 18) → Module Y pin
-    Green:  GPIO 22 (Pin 15) → Module G pin
-    GND:    Pin 14 (GND)      → Module GND pin
-  
-  South Module:
     Red:    GPIO 5  (Pin 29) → Module R pin
     Yellow: GPIO 6  (Pin 31) → Module Y pin
     Green:  GPIO 13 (Pin 33) → Module G pin
     GND:    Pin 30 (GND)     → Module GND pin
   
+  South Module:
+    Red:    GPIO 23 (Pin 16) → Module R pin
+    Yellow: GPIO 24 (Pin 18) → Module Y pin
+    Green:  GPIO 22 (Pin 15) → Module G pin
+    GND:    Pin 14 (GND)     → Module GND pin
+  
   West Module:
-    Red:    GPIO 16 (Pin 36) → Module R pin
-    Yellow: GPIO 20 (Pin 38) → Module Y pin
-    Green:  GPIO 21 (Pin 40) → Module G pin
-    GND:    Pin 34 (GND)     → Module GND pin
+    Red:    GPIO 14 (Pin 8)  → Module R pin
+    Yellow: GPIO 4 (Pin 7)   → Module Y pin
+    Green:  GPIO 18 (Pin 12) → Module G pin
+    GND:    Pin 9 (GND)      → Module GND pin
 
 COOLING FAN (from Pi case):
   Fan +5V:  Pin 4 (5V Power)
