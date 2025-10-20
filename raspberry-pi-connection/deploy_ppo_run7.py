@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Full-Featured Hardware Deployment - Run 7 PPO Agent
-With automatic logging, visualization, and performance tracking
-"""
-
 import RPi.GPIO as GPIO
 import time
 import numpy as np
