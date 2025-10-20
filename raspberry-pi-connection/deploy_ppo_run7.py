@@ -277,11 +277,13 @@ class HardwareController:
         try:
             while (time.time() - start_time) < duration:
                 step += 1
+
+                # CHECK BUTTONS 10 TIMES over the next second
+                for _ in range(10):
+                    self.read_queues_debounced()
+                    time.sleep(0.1)  # Check every 100ms = 10 checks per second
                 
-                # Read inputs
-                self.read_queues_debounced()
-                
-                # Get PPO decision
+                # Get PPO decision (once per second)
                 obs = self.queues.copy()
                 obs_norm = self.vec_env.normalize_obs(obs)
                 
