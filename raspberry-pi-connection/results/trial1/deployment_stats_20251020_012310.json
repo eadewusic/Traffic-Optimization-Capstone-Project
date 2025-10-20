@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-10-20 01:24:13",
+  "controller": "PPO_Run7",
+  "duration_seconds": 60.398350954055786,
+  "total_steps": 60,
+  "vehicles_cleared": 2,
+  "phase_changes": 2,
+  "button_presses": {
+    "north": 0,
+    "south": 1,
+    "east": 1,
+    "west": 0
+  },
+  "final_queues": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "inference_times": {
+    "mean_ms": 5.755615234375,
+    "max_ms": 12.025594711303711,
+    "min_ms": 2.5625228881835938,
+    "std_ms": 1.1679609003301272,
+    "real_time_capable": true
+  }
+}
