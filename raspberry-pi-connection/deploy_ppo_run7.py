@@ -278,7 +278,7 @@ class HardwareController:
             while (time.time() - start_time) < duration:
                 step += 1
 
-                # CHECK BUTTONS 10 TIMES over the next second
+                # READ INPUTS - check buttons 10 times over the next second
                 for _ in range(10):
                     self.read_queues_debounced()
                     time.sleep(0.1)  # Check every 100ms = 10 checks per second
