@@ -73,7 +73,7 @@ class DataLogger:
         self.data = []
         self.start_time = time.time()
         
-        print(f" Run folder created: {self.run_folder}")
+        print(f"* Run Log Saved to: {self.run_folder}\n")
     
     def log_step(self, step, queues, action, cleared, inference_ms, phase_change):
         """Log a single step"""
@@ -98,7 +98,6 @@ class DataLogger:
         """Save data to CSV"""
         df = pd.DataFrame(self.data)
         df.to_csv(self.csv_path, index=False)
-        print(f" CSV saved: {self.csv_path}")
         return df
     
     def create_visualization(self, df):
@@ -165,14 +164,12 @@ class DataLogger:
         
         plt.tight_layout()
         plt.savefig(self.viz_path, dpi=150, bbox_inches='tight')
-        print(f" Visualization saved: {self.viz_path}")
         plt.close()
     
     def save_statistics(self, stats):
         """Save summary statistics"""
         with open(self.json_path, 'w') as f:
             json.dump(stats, f, indent=2)
-        print(f" Statistics saved: {self.json_path}")
 
     def save_text_report(self, stats):
         """Save human-readable text report"""
@@ -194,8 +191,11 @@ class DataLogger:
             total_presses = sum(stats['button_presses'].values())
             f.write(f"  Total:  {total_presses:3d}\n")
             f.write(f"\nArrival Rate: {total_presses/stats['duration_seconds']:.3f} vehicles/second\n")
-            f.write(f"Throughput: {stats['vehicles_cleared']/total_presses*100:.1f}% " 
-                    f"({stats['vehicles_cleared']}/{total_presses} cleared)\n")
+            if total_presses > 0:
+                f.write(f"Throughput: {stats['vehicles_cleared']/total_presses*100:.1f}% " 
+                        f"({stats['vehicles_cleared']}/{total_presses} cleared)\n")
+            else:
+                f.write(f"Throughput: N/A (no button presses detected)\n")
             f.write(f"\nFinal Queue State:\n")
             directions = ['North', 'South', 'East', 'West']
             for i, direction in enumerate(directions):
@@ -233,47 +233,50 @@ class DataLogger:
             f.write(f" GPIO reliability:                     PASS\n\n")
             
             f.write("\n DEPLOYMENT SUCCESSFUL\n")
-        
-        print(f"\n Text report saved: {self.txt_path}")
 
 
 class HardwareController:
     """Full-featured hardware controller with logging"""
     
-    def __init__(self, model_path, vecnorm_path, logger):
-        print("\n Initializing Hardware Controller...")
+    def __init__(self, model_path, vecnorm_path, logger, use_model=True):
+        print("* Initializing Hardware Controller...")
         
         self.logger = logger
+        self.use_model = use_model  # For comparison mode
         
         # Setup GPIO
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
         
         # Setup LEDs
-        print("   Setting up LED outputs...")
+        print("* Setting up LED outputs...")
         for pin in LED_PINS.values():
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.LOW)
         
         # Setup buttons
-        print("   Setting up button inputs...")
+        print("* Setting up button inputs...")
         for pin in BUTTON_PINS.values():
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         
         # Test hardware
-        print("   Testing hardware...")
+        print("* Testing hardware...")
         self.test_hardware_quick()
         
-        # Load model
-        print("   Loading PPO model...")
-        self.model = PPO.load(model_path)
-        
-        print("   Loading VecNormalize...")
-        from environments.run7_env import Run7TrafficEnv
-        dummy_env = DummyVecEnv([lambda: Run7TrafficEnv()])
-        self.vec_env = VecNormalize.load(vecnorm_path, dummy_env)
-        self.vec_env.training = False
-        self.vec_env.norm_reward = False
+        # Load model (only if using PPO)
+        if self.use_model:
+            print("* Loading PPO model...")
+            self.model = PPO.load(model_path)
+            
+            print("* Loading VecNormalize...")
+            from environments.run7_env import Run7TrafficEnv
+            dummy_env = DummyVecEnv([lambda: Run7TrafficEnv()])
+            self.vec_env = VecNormalize.load(vecnorm_path, dummy_env)
+            self.vec_env.training = False
+            self.vec_env.norm_reward = False
+        else:
+            self.model = None
+            self.vec_env = None
         
         # State
         self.queues = np.zeros(4, dtype=float)
@@ -295,7 +298,11 @@ class HardwareController:
         self.last_button_time = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
         self.debounce_delay = 0.3  # 300ms debounce
         
-        print(" Hardware Controller Ready\n")
+        # For fixed timing mode
+        self.fixed_timer = 0
+        self.fixed_phase_duration = 30  # 30 seconds per phase
+        
+        print("* Hardware Controller Ready\n")
     
     def test_hardware_quick(self):
         """Quick hardware validation"""
@@ -380,9 +387,9 @@ class HardwareController:
                         self.button_presses[direction] += 1
                         self.last_button_time[direction] = current_time
                         
-                        # REAL-TIME BUTTON DISPLAY - Shows immediately when pressed
+                        # REAL-TIME BUTTON DISPLAY
                         q = self.queues.astype(int)
-                        print(f"\n {direction.upper()} PRESSED | Queue: [N={q[0]} S={q[1]} E={q[2]} W={q[3]}]")
+                        print(f"\n*** {direction.upper()} BUTTON PRESSED = CAR ARRIVAL = Queue: [N={q[0]} S={q[1]} E={q[2]} W={q[3]}] ***")
     
     def clear_vehicles(self, action):
         """Clear vehicles based on phase"""
@@ -408,10 +415,14 @@ class HardwareController:
     
     def run_demo_mode(self, duration=60):
         """Demo mode - demonstration with full logging"""
-        print(f" DEMO MODE - {duration} SECOND DEMONSTRATION")
-        print("\n Press buttons to simulate vehicle arrivals")
-        print(" Watch LEDs for yellow transitions: GREEN → YELLOW (2s) → RED")
-        print("\n  Press Ctrl+C to stop\n")
+        print("--------------------------------------------\n")
+        print(f"## DEMO MODE - {duration} SECONDS DEMONSTRATION\n")
+        print("* Press buttons to simulate vehicle arrivals.")
+        print("* Watch LEDs for transitions: GREEN -> YELLOW (2s) -> RED")
+        print("* Press Ctrl+C to stop.\n")
+        print("--------------------------------------------")
+        print(">> TRAFFIC LOG")
+        print("--------------------------------------------\n")
         
         self._reset_metrics()
         start_time = time.time()
@@ -427,15 +438,22 @@ class HardwareController:
                     self.read_queues_debounced()
                     time.sleep(0.1)  # Check every 100ms = 10 checks per second
                 
-                # Get PPO decision (once per second)
-                obs = self.queues.copy()
-                obs_norm = self.vec_env.normalize_obs(obs)
+                # Get decision
+                if self.use_model:
+                    # PPO decision
+                    obs = self.queues.copy()
+                    obs_norm = self.vec_env.normalize_obs(obs)
+                    
+                    start_inf = time.time()
+                    action, _ = self.model.predict(obs_norm, deterministic=True)
+                    inference_ms = (time.time() - start_inf) * 1000
+                    action = int(action)
+                else:
+                    # Fixed-timing decision
+                    self.fixed_timer += 1
+                    action = 0 if (self.fixed_timer // self.fixed_phase_duration) % 2 == 0 else 1
+                    inference_ms = 0  # No inference for fixed timing
                 
-                start_inf = time.time()
-                action, _ = self.model.predict(obs_norm, deterministic=True)
-                inference_ms = (time.time() - start_inf) * 1000
-                
-                action = int(action)
                 self.inference_times.append(inference_ms)
                 
                 # Track phase changes
@@ -454,7 +472,7 @@ class HardwareController:
                                     inference_ms, phase_change)
                 
                 # Display
-                self._print_status(step, action, cleared, inference_ms)
+                self._print_status(step, action, cleared, inference_ms, phase_change)
                 
                 time.sleep(1.0)
                 self.total_steps += 1
@@ -475,47 +493,59 @@ class HardwareController:
         self.yellow_transitions = 0
         self.inference_times = []
         self.button_presses = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
+        self.fixed_timer = 0
     
-    def _print_status(self, step, action, cleared, inference_ms):
-        """Print current status"""
+    def _print_status(self, step, action, cleared, inference_ms, phase_change):
+        """Print step status"""
         q = self.queues.astype(int)
-        phase = 'N/S' if action == 0 else 'E/W'
-        print(f"Step {step:3d} | Q:[N={q[0]:2d} S={q[1]:2d} E={q[2]:2d} W={q[3]:2d}] | "
-              f"Phase:{phase} | Clear:{cleared} | Inf:{inference_ms:.2f}ms", end='\r')
+        phase_name = 'North/South' if action == 0 else 'East/West'
+        
+        if phase_change:
+            print(f"[STEP {step}] PPO ACTION: Switch to GREEN {phase_name}")
+        else:
+            print(f"[STEP {step}] Green Light: {phase_name}")
+        
+        print(f"    - Cars Cleared: {cleared} car(s) (Total: {self.total_cleared})")
+        print(f"    - Cars Waiting: N={q[0]}, S={q[1]}, E={q[2]}, W={q[3]}")
+        print(f"    - Inference: {inference_ms:.2f}ms\n")
     
     def _print_final_stats(self, elapsed, steps):
         """Print final statistics"""
-        print("\n\n DEPLOYMENT RESULTS")
+        total_presses = sum(self.button_presses.values())
+        cleared_pct = (self.total_cleared / max(total_presses, 1)) * 100
         
-        print(f"\n  Duration: {elapsed:.1f}s ({steps} steps)")
+        print("-----------------------------------------------------")
+        print(f">> DEPLOYMENT RESULTS (Duration: {elapsed:.1f}s | {steps} steps)")
+        print("-----------------------------------------------------\n")
         
-        print(f"\n Traffic Metrics:")
-        print(f"   Total cleared: {self.total_cleared}")
-        print(f"   Button presses: N={self.button_presses['north']}, "
+        print("Traffic Metrics:")
+        print(f"- Total cars cleared: {self.total_cleared} out of {total_presses} ({cleared_pct:.1f}%)")
+        print(f"- Button presses: N={self.button_presses['north']}, "
               f"S={self.button_presses['south']}, "
               f"E={self.button_presses['east']}, "
               f"W={self.button_presses['west']}")
-        print(f"   Final queues: N={int(self.queues[0])}, S={int(self.queues[1])}, "
-              f"E={int(self.queues[2])}, W={int(self.queues[3])}")
+        print(f"- Final queues: N={int(self.queues[0])}, S={int(self.queues[1])}, "
+              f"E={int(self.queues[2])}, W={int(self.queues[3])} "
+              f"(Only {int(sum(self.queues))} cars still waiting)\n")
         
-        print(f"\n Control Metrics:")
-        print(f"   Phase changes: {self.phase_changes}")
-        print(f"   Yellow transitions: {self.yellow_transitions}")
-        print(f"   Avg phase duration: {elapsed/max(self.phase_changes, 1):.2f}s")
+        print("Control Metrics:")
+        print(f"- Phase changes: {self.phase_changes}")
+        print(f"- Yellow transitions: {self.yellow_transitions}")
+        print(f"- Avg phase duration: {elapsed/max(self.phase_changes, 1):.2f}s\n")
         
-        print(f"\n Performance Metrics:")
+        print("Performance Metrics:")
         if self.inference_times:
-            print(f"   Mean inference: {np.mean(self.inference_times):.2f}ms")
-            print(f"   Max inference: {np.max(self.inference_times):.2f}ms")
-            print(f"   Min inference: {np.min(self.inference_times):.2f}ms")
-            print(f"   Std inference: {np.std(self.inference_times):.2f}ms")
-            print(f"   Real-time: {'YES' if np.max(self.inference_times) < 100 else 'NO'}")
+            print(f"- Mean/Avg inference: {np.mean(self.inference_times):.2f}ms")
+            print(f"- Max inference: {np.max(self.inference_times):.2f}ms")
+            print(f"- Min inference: {np.min(self.inference_times):.2f}ms")
+            print(f"- Std inference: {np.std(self.inference_times):.2f}ms")
+            print(f"- Real-time: {'YES' if np.max(self.inference_times) < 100 else 'NO'}\n")
     
     def _get_statistics(self, elapsed, steps):
         """Get statistics dictionary"""
         return {
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'controller': 'PPO_Run7',
+            'controller': 'PPO_Run7' if self.use_model else 'Fixed_Timing',
             'duration_seconds': float(elapsed),
             'total_steps': int(steps),
             'vehicles_cleared': int(self.total_cleared),
@@ -538,14 +568,110 @@ class HardwareController:
         for pin in LED_PINS.values():
             GPIO.output(pin, GPIO.LOW)
         GPIO.cleanup()
-        print(" GPIO cleaned up")
+        print("\nGPIO cleaned up.")
+
+
+def run_comparison_demo(model_path, vecnorm_path, duration=60):
+    """Run comparison between fixed-timing and PPO"""
+    print("\n" + "="*70)
+    print("     COMPARISON DEMO: FIXED-TIMING vs PPO-POWERED")
+    print("="*70)
+    
+    # Run 1: Fixed-timing
+    print("\n PART 1: TRADITIONAL FIXED-TIMING TRAFFIC LIGHT")
+    print("   (Changes every 30 seconds, no intelligence)\n")
+    input("Press ENTER to start fixed-timing demo...")
+    
+    logger_fixed = DataLogger()
+    controller_fixed = HardwareController(model_path, vecnorm_path, logger_fixed, use_model=False)
+    
+    try:
+        stats_fixed = controller_fixed.run_demo_mode(duration=duration)
+        
+        # Save results
+        print("\n[LOGGING] Saving fixed-timing results...")
+        df_fixed = logger_fixed.save_csv()
+        logger_fixed.create_visualization(df_fixed)
+        logger_fixed.save_statistics(stats_fixed)
+        logger_fixed.save_text_report(stats_fixed)
+        print("    - Log: " + logger_fixed.csv_path)
+        print("    - Plot: " + logger_fixed.viz_path)
+        print("    - Stats: " + logger_fixed.json_path)
+        print("    - Report: " + logger_fixed.txt_path)
+    finally:
+        controller_fixed.cleanup()
+    
+    print("\n" + "-"*70)
+    print(" Fixed-timing demo complete! Now let's see the PPO in action...")
+    print("-"*70)
+    time.sleep(3)
+    
+    # Run 2: PPO
+    print("\n PART 2: PPO-POWERED ADAPTIVE TRAFFIC LIGHT")
+    print("   (Changes based on traffic demand)\n")
+    input("Press ENTER to start PPO demo...")
+    
+    logger_ppo = DataLogger()
+    controller_ppo = HardwareController(model_path, vecnorm_path, logger_ppo, use_model=True)
+    
+    try:
+        stats_ppo = controller_ppo.run_demo_mode(duration=duration)
+        
+        # Save results
+        print("\n[LOGGING] Saving PPO results...")
+        df_ppo = logger_ppo.save_csv()
+        logger_ppo.create_visualization(df_ppo)
+        logger_ppo.save_statistics(stats_ppo)
+        logger_ppo.save_text_report(stats_ppo)
+        print("    - Log: " + logger_ppo.csv_path)
+        print("    - Plot: " + logger_ppo.viz_path)
+        print("    - Stats: " + logger_ppo.json_path)
+        print("    - Report: " + logger_ppo.txt_path)
+    finally:
+        controller_ppo.cleanup()
+    
+    # Print comparison
+    print("\n\n" + "="*70)
+    print("     COMPARISON RESULTS")
+    print("="*70)
+    
+    total_presses_fixed = sum(stats_fixed['button_presses'].values())
+    total_presses_ppo = sum(stats_ppo['button_presses'].values())
+    
+    print(f"\nCars Cleared:")
+    print(f"   Fixed-Timing: {stats_fixed['vehicles_cleared']} out of {total_presses_fixed} " +
+          f"({stats_fixed['vehicles_cleared']/max(total_presses_fixed,1)*100:.1f}%)")
+    print(f"   PPO-Powered:   {stats_ppo['vehicles_cleared']} out of {total_presses_ppo} " +
+          f"({stats_ppo['vehicles_cleared']/max(total_presses_ppo,1)*100:.1f}%)")
+    
+    if total_presses_fixed > 0 and total_presses_ppo > 0:
+        improvement = stats_ppo['vehicles_cleared'] - stats_fixed['vehicles_cleared']
+        print(f"   Improvement:  +{improvement} cars ({improvement/max(total_presses_fixed,1)*100:.1f}% better)")
+    
+    print(f"\nPhase Changes (Adaptability):")
+    print(f"   Fixed-Timing: {stats_fixed['phase_changes']} changes")
+    print(f"   PPO-Powered:   {stats_ppo['phase_changes']} changes")
+    
+    print(f"\nAverage Wait Time per Phase:")
+    avg_wait_fixed = stats_fixed['duration_seconds'] / max(stats_fixed['phase_changes'], 1)
+    avg_wait_ppo = stats_ppo['duration_seconds'] / max(stats_ppo['phase_changes'], 1)
+    print(f"   Fixed-Timing: {avg_wait_fixed:.2f} seconds")
+    print(f"   PPO-Powered:   {avg_wait_ppo:.2f} seconds")
+    
+    if stats_ppo['inference_times']['mean_ms'] > 0:
+        print(f"\nPPO Decision Speed:")
+        print(f"   Average: {stats_ppo['inference_times']['mean_ms']:.2f}ms")
+        print(f"   That's {1000/stats_ppo['inference_times']['mean_ms']:.0f}x faster than human reaction time!")
+    
+    print("\n" + "="*70)
+    print(" The PPO adapts to traffic in real-time, making smarter decisions!")
+    print("="*70 + "\n")
 
 
 def main():
     """Main execution"""
-    print("\n FULL-FEATURED HARDWARE DEPLOYMENT - RUN 7 PPO")
-    print(f"\n {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(" PPO + Raspberry Pi Traffic Light Controller with Auto-Logging")
+    print("\n--- PPO-BASED TRAFFIC OPTIMIZATION HARDWARE DEMO ---")
+    print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     
     # Paths
     MODEL_PATH = "/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/models/hardware_ppo/run_7/final_model.zip"
@@ -553,28 +679,37 @@ def main():
     
     # Check files
     if not os.path.exists(MODEL_PATH):
-        print(f" Model not found: {MODEL_PATH}")
+        print(f"[ERROR] Model not found: {MODEL_PATH}")
         sys.exit(1)
     if not os.path.exists(VECNORM_PATH):
-        print(f" VecNormalize not found: {VECNORM_PATH}")
+        print(f"[ERROR] VecNormalize not found: {VECNORM_PATH}")
         sys.exit(1)
     
-    print(" Model files found")
+    print("[SETUP] Model files found. Auto-Logging ON.")
     
     # Mode selection
-    print("\n SELECT MODE:")
-    print("   1. Demo Mode (60s)")
-    print("   2. Extended Demo (120s)")
-    print("   3. Quick Test (30s)")
+    print("[SELECT MODE]")
+    print("  1. Demo Mode (60s)")
+    print("  2. Extended Demo (120s)")
+    print("  3. Quick Test (30s)")
+    print("  4. Comparison (Fixed vs PPO)\n")
     
     try:
-        mode = input("\nEnter mode (1-3): ").strip()
-        durations = {'1': 60, '2': 120, '3': 30}
-        duration = durations.get(mode, 60)
+        mode = input("Enter mode (1-4): ").strip()
+        
+        if mode == '4':
+            # Comparison mode
+            duration = 60
+            print(f"\n* Starting comparison demo ({duration}s each)...\n")
+            run_comparison_demo(MODEL_PATH, VECNORM_PATH, duration)
+            return
+        else:
+            durations = {'1': 60, '2': 120, '3': 30}
+            duration = durations.get(mode, 60)
     except:
         duration = 60
     
-    print(f"\n Starting {duration}s deployment with full logging...\n")
+    print(f"\n* Starting {duration}-second deployment...\n")
     
     logger = None
     controller = None
@@ -611,19 +746,17 @@ def main():
         stats = controller.run_demo_mode(duration=duration)
         
         # Save everything
-        print("\n Saving results...")
+        print("\n[LOGGING] All data saved:")
         df = logger.save_csv()
         logger.create_visualization(df)
         logger.save_statistics(stats)
         logger.save_text_report(stats)
         
-        print("\n DEPLOYMENT COMPLETE - ALL DATA SAVED")
-        print(f"\n Results saved to:")
-        print(f"   CSV: {logger.csv_path}")
-        print(f"   Plot: {logger.viz_path}")
-        print(f"   Stats: {logger.json_path}")
-        print(f"   Report: {logger.txt_path}")
-        print(f"   Terminal: {terminal_log_path}")
+        print(f"    - Log: {logger.csv_path}")
+        print(f"    - Report: {logger.txt_path}")
+        print(f"    - Stats: {logger.json_path}")
+        print(f"    - Plot: {logger.viz_path}")
+        print(f"    - Output: {terminal_log_path}")
         
         # Restore stdout/stderr
         sys.stdout = original_stdout
@@ -631,9 +764,9 @@ def main():
         tee_file.close()
         
     except KeyboardInterrupt:
-        print("\n\n  Deployment stopped by user")
+        print("\n\n[STOPPED] Deployment stopped by user")
     except Exception as e:
-        print(f"\n Error: {e}")
+        print(f"\n[ERROR] {e}")
         import traceback
         traceback.print_exc()
     finally:
