@@ -35,7 +35,7 @@ COOLING FAN (from Pi case):
 BUTTONS:
   North: GPIO 26 (Pin 37)
   East: GPIO 25 (Pin 22)
-  South: GPIO 27 (Pin 13)
+  South: GPIO 17 (Pin 11)
   West: GPIO 8 (Pin 24)
   Common GND: Pin 39 (GND)
 
@@ -63,7 +63,7 @@ LED_PINS = {
     'west_red': 14, 'west_yellow': 4, 'west_green': 18
 }
 
-BUTTON_PINS = {'north': 26, 'east': 25, 'south': 27, 'west': 8}
+BUTTON_PINS = {'north': 26, 'east': 25, 'south': 17, 'west': 8}
 
 def setup_gpio():
     GPIO.setmode(GPIO.BCM)

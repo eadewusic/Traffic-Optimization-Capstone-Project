@@ -9,7 +9,7 @@ and continuously monitor the state of each button. When a button is pressed
 Pinout (BCM):
   North: GPIO 26 (Pin 37)
   East: GPIO 25 (Pin 22)
-  South: GPIO 27 (Pin 13)
+  South: GPIO 17 (Pin 11)
   West: GPIO 8 (Pin 24)
   Common GND: Pin 39 (GND)
 """
@@ -20,7 +20,7 @@ import time
 BUTTONS = {
     "North": 26,
     "East": 25,
-    "South": 27,
+    "South": 17,
     "West": 8
 }
 

@@ -18,7 +18,7 @@ LED MODULES (Output):
 BUTTONS (Input - connected to GND):
 - North: GPIO 26
 - East:  GPIO 25
-- South: GPIO 27
+- South: GPIO 17
 - West:  GPIO 8
 
 Note: Buttons are configured with internal PULL_UP resistors, meaning the input is
@@ -54,7 +54,7 @@ LED_MODULES = {
 BUTTONS = {
     "North": 26,
     "East": 25,
-    "South": 27,
+    "South": 17,
     "West": 8
 }
 

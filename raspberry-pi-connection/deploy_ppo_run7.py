@@ -51,7 +51,7 @@ LED_PINS = {
     'west_red': 14, 'west_yellow': 4, 'west_green': 18
 }
 
-BUTTON_PINS = {'north': 26, 'east': 25, 'south': 27, 'west': 8}
+BUTTON_PINS = {'north': 26, 'east': 25, 'south': 17, 'west': 8}
 
 class DataLogger:
     """Comprehensive data logging for hardware deployment"""
