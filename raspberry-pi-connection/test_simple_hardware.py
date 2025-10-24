@@ -40,9 +40,17 @@ BUTTONS:
   Common GND: Pin 39 (GND)
 
 BREADBOARDS CONNECTION:
-  Pi GND (Pin 39) ─── Breadboard 1 (buttons) GND
-  Breadboard 1 (GND rail) ─── Breadboard 2 (GND rail)
-  Breadboard 2 (GND rail) ─── Pi GND (Pin 25)
+    Pi GND (Pin 39) ─── Breadboard 1 (buttons) GND rail
+                            │
+    Breadboard 1 GND rail ─── Breadboard 2 (traffic module 1) GND rail
+                            │
+    Breadboard 2 GND rail ─── Breadboard 3 (traffic module 2) GND rail
+                            │
+    Breadboard 3 GND rail ─── Breadboard 4 (traffic module 3) GND rail
+                            │
+    Breadboard 4 GND rail ─── Breadboard 5 (traffic module 4) GND rail
+                            │
+    Breadboard 5 GND rail ─── Pi GND (Pin 25)
 """
 
 import RPi.GPIO as GPIO
@@ -127,6 +135,7 @@ def test_buttons():
     while time.time() - start < 20:
         for name, pin in BUTTON_PINS.items():
             if GPIO.input(pin) == GPIO.LOW:
+                time.sleep(0.05) # verify reading has remained LOW for at least 50ms to ignore noise
                 presses[name] += 1
                 print(f"   {name.upper()} pressed!", end='\r')
                 time.sleep(2)
