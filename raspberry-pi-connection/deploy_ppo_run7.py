@@ -312,26 +312,36 @@ class HardwareController:
             time.sleep(0.1)
             GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
     
-    def show_yellow_transition(self):
+    def show_yellow_transition(self, old_phase):
         """
-        Show yellow lights for all directions during phase transition.
-        This warns vehicles that the light is about to change.
-        Standard traffic signal behavior: Green → Yellow (2s) → Red
+        Args:
+            old_phase: The phase that's ending (0=N/S, 1=E/W)
         """
-        # Turn off all greens and reds
-        for direction in ['north', 'east', 'south', 'west']:
-            GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
-            GPIO.output(LED_PINS[f'{direction}_red'], GPIO.LOW)
+        # Determine which directions are currently green
+        if old_phase == 0:  # N/S are green
+            yellow_directions = ['north', 'south']
+            stay_red_directions = ['east', 'west']
+        else:  # E/W are green
+            yellow_directions = ['east', 'west']
+            stay_red_directions = ['north', 'south']
         
-        # Turn on all yellows
-        for direction in ['north', 'east', 'south', 'west']:
+        # Turn off greens for the directions that had it
+        for direction in yellow_directions:
+            GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
+        
+        # Turn on yellows ONLY for directions that were green
+        for direction in yellow_directions:
             GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.HIGH)
+        
+        # Keep reds on for directions that already had red
+        for direction in stay_red_directions:
+            GPIO.output(LED_PINS[f'{direction}_red'], GPIO.HIGH)
         
         # Hold yellow for 2 seconds
         time.sleep(self.yellow_duration)
         
-        # Turn off all yellows
-        for direction in ['north', 'east', 'south', 'west']:
+        # Turn off yellows
+        for direction in yellow_directions:
             GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.LOW)
         
         self.yellow_transitions += 1
@@ -349,10 +359,10 @@ class HardwareController:
         """
         # Detect phase change
         phase_changed = (phase != self.current_phase)
-        
+
         if phase_changed:
-            # Show yellow transition before changing phase
-            self.show_yellow_transition()
+            # Show yellow transition before changing phase (only for currently green lights)
+            self.show_yellow_transition(self.current_phase)  # Pass old phase!
         
         # Turn off all lights first
         for pin in LED_PINS.values():
