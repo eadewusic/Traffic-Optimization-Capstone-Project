@@ -1,64 +1,0 @@
-
- FULL-FEATURED HARDWARE DEPLOYMENT - RUN 7 PPO
-
- 2025-10-20 01:23:06
- PPO + Raspberry Pi Traffic Light Controller with Auto-Logging
-
- Model files found
-
- SELECT MODE:
-   1. Demo Mode (60s with full logging)
-   2. Extended Demo (120s)
-   3. Quick Test (30s)
-
-Enter mode (1-3): 
- Starting 60s deployment with full logging...
-
-
- Initializing Hardware Controller...
-   Setting up LED outputs...
-   Setting up button inputs...
-   Testing hardware...
-   Loading PPO model...
-   Loading VecNormalize...
- Hardware Controller Ready
-
- DEMO MODE - 60 SECOND DEMONSTRATION
-
- Press buttons to simulate vehicle arrivals
-
-  Press Ctrl+C to stop
-
-Step   1 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:6.75msStep   2 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:2.77msStep   3 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:2.58msStep   4 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:2.56msStep   5 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.82msStep   6 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep   7 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.75msStep   8 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.85msStep   9 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.73msStep  10 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.72msStep  11 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.79msStep  12 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.92msStep  13 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.83msStep  14 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.73msStep  15 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:12.03msStep  16 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:8.50msStep  17 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.85msStep  18 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.80msStep  19 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.91msStep  20 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.90msStep  21 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.67msStep  22 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep  23 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep  24 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.69msStep  25 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:7.43msStep  26 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.75msStep  27 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:1 | Inf:5.78msStep  28 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.66msStep  29 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.01msStep  30 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.02msStep  31 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:4.99msStep  32 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.76msStep  33 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.77msStep  34 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep  35 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.66msStep  36 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.78msStep  37 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.67msStep  38 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.63msStep  39 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.69msStep  40 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.72msStep  41 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.67msStep  42 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.75msStep  43 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.85msStep  44 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.75msStep  45 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.70msStep  46 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.77msStep  47 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep  48 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.89msStep  49 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.67msStep  50 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:E/W | Clear:1 | Inf:5.68msStep  51 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.71msStep  52 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.79msStep  53 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.70msStep  54 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.67msStep  55 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.70msStep  56 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:6.01msStep  57 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.76msStep  58 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.73msStep  59 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.77msStep  60 | Q:[N= 0 S= 0 E= 0 W= 0] | Phase:N/S | Clear:0 | Inf:5.77ms
- DEPLOYMENT RESULTS
-
-  Duration: 60.4s (60 steps)
-
- Traffic Metrics:
-   Total cleared: 2
-   Button presses: N=0, S=1, E=1, W=0
-   Final queues: N=0, S=0, E=0, W=0
-
- Control Metrics:
-   Phase changes: 2
-   Avg phase duration: 30.20s
-
- Performance Metrics:
-   Mean inference: 5.76ms
-   Max inference: 12.03ms
-   Min inference: 2.56ms
-   Std inference: 1.17ms
-   Real-time: YES
-
- Saving results...
- CSV saved: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_log_20251020_012310.csv
- Visualization saved: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_viz_20251020_012310.png
- Statistics saved: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_stats_20251020_012310.json
-
- DEPLOYMENT COMPLETE - ALL DATA SAVED
-
- Results saved to:
-   CSV: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_log_20251020_012310.csv
-   Plot: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_viz_20251020_012310.png
-   Stats: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/deployment_stats_20251020_012310.json
- GPIO cleaned up
