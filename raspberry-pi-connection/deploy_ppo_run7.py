@@ -580,8 +580,31 @@ def main():
     controller = None
     
     try:
-        # Initialize
+        # Initialize logger (creates the run folder)
         logger = DataLogger()
+        
+        # redirect stdout to also save to file
+        terminal_log_path = os.path.join(logger.run_folder, "terminal_output.txt")
+        tee_file = open(terminal_log_path, 'w')
+        
+        class TeeOutput:
+            def __init__(self, *files):
+                self.files = files
+            def write(self, data):
+                for f in self.files:
+                    f.write(data)
+                    f.flush()
+            def flush(self):
+                for f in self.files:
+                    f.flush()
+        
+        # Redirect stdout and stderr
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        sys.stdout = TeeOutput(original_stdout, tee_file)
+        sys.stderr = TeeOutput(original_stderr, tee_file)
+        
+        # Initialize controller
         controller = HardwareController(MODEL_PATH, VECNORM_PATH, logger)
         
         # Run
@@ -600,6 +623,12 @@ def main():
         print(f"   Plot: {logger.viz_path}")
         print(f"   Stats: {logger.json_path}")
         print(f"   Report: {logger.txt_path}")
+        print(f"   Terminal: {terminal_log_path}")
+        
+        # Restore stdout/stderr
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        tee_file.close()
         
     except KeyboardInterrupt:
         print("\n\n  Deployment stopped by user")
