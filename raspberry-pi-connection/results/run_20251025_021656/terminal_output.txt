@@ -1,0 +1,341 @@
+* Initializing Hardware Controller...
+* Setting up LED outputs...
+* Setting up button inputs...
+* Testing hardware...
+* Loading PPO model...
+* Loading VecNormalize...
+* Hardware Controller Ready
+
+--------------------------------------------
+
+## DEMO MODE - 120 SECONDS DEMONSTRATION
+
+* Press buttons to simulate vehicle arrivals.
+* Watch LEDs for transitions: GREEN -> YELLOW (2s) -> RED
+* Press Ctrl+C to stop.
+
+--------------------------------------------
+>> TRAFFIC LOG
+--------------------------------------------
+
+[STEP 1] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 0)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 7.15ms
+
+[STEP 2] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 0)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 2.77ms
+
+[STEP 3] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 0)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.76ms
+
+[STEP 4] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 0)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 10.24ms
+
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=0 W=1] ***
+[STEP 5] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 1)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 10.05ms
+
+[STEP 6] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 0 car(s) (Total: 1)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 10.20ms
+
+[STEP 7] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 1)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 7.30ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=0 W=0] ***
+[STEP 8] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 2)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.83ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=0 W=0] ***
+[STEP 9] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 3)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.66ms
+
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=1 W=0] ***
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=2 W=0] ***
+[STEP 10] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 4)
+    - Cars Waiting: N=0, S=0, E=1, W=0
+    - Inference: 8.52ms
+
+[STEP 11] Green Light: East/West
+    - Cars Cleared: 1 car(s) (Total: 5)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.84ms
+
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=0 W=0] ***
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=2 S=0 E=0 W=0] ***
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=3 S=0 E=0 W=0] ***
+[STEP 12] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 6)
+    - Cars Waiting: N=2, S=0, E=0, W=0
+    - Inference: 10.33ms
+
+[STEP 13] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 7)
+    - Cars Waiting: N=1, S=0, E=0, W=0
+    - Inference: 7.43ms
+
+[STEP 14] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 8)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.80ms
+
+[STEP 15] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 8)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.92ms
+
+[STEP 16] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 8)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.81ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=0 W=0] ***
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=1 W=0] ***
+[STEP 17] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 9)
+    - Cars Waiting: N=0, S=0, E=1, W=0
+    - Inference: 5.80ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=1 W=0] ***
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=2 W=0] ***
+[STEP 18] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 10)
+    - Cars Waiting: N=0, S=1, E=1, W=0
+    - Inference: 7.52ms
+
+[STEP 19] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 11)
+    - Cars Waiting: N=0, S=0, E=1, W=0
+    - Inference: 5.75ms
+
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=1 W=0] ***
+[STEP 20] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 12)
+    - Cars Waiting: N=0, S=0, E=1, W=0
+    - Inference: 9.98ms
+
+[STEP 21] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 13)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.82ms
+
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=0 W=0] ***
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=2 S=0 E=0 W=0] ***
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=3 S=0 E=0 W=0] ***
+[STEP 22] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 14)
+    - Cars Waiting: N=2, S=0, E=0, W=0
+    - Inference: 5.89ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=2 S=1 E=0 W=0] ***
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=2 S=2 E=0 W=0] ***
+[STEP 23] Green Light: North/South
+    - Cars Cleared: 2 car(s) (Total: 16)
+    - Cars Waiting: N=1, S=1, E=0, W=0
+    - Inference: 5.89ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=2 E=0 W=0] ***
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=3 E=0 W=0] ***
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=4 E=0 W=0] ***
+[STEP 24] Green Light: North/South
+    - Cars Cleared: 2 car(s) (Total: 18)
+    - Cars Waiting: N=0, S=3, E=0, W=0
+    - Inference: 5.92ms
+
+[STEP 25] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 19)
+    - Cars Waiting: N=0, S=2, E=0, W=0
+    - Inference: 5.69ms
+
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=0 W=1] ***
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=0 W=2] ***
+[STEP 26] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 20)
+    - Cars Waiting: N=0, S=1, E=0, W=2
+    - Inference: 10.24ms
+
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=0 W=3] ***
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=1 E=0 W=4] ***
+[STEP 27] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 21)
+    - Cars Waiting: N=0, S=1, E=0, W=3
+    - Inference: 11.21ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=0 W=3] ***
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=3 E=0 W=3] ***
+[STEP 28] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 22)
+    - Cars Waiting: N=0, S=2, E=0, W=3
+    - Inference: 6.59ms
+
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=1 W=3] ***
+[STEP 29] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 2 car(s) (Total: 24)
+    - Cars Waiting: N=0, S=2, E=0, W=2
+    - Inference: 11.24ms
+
+[STEP 30] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 25)
+    - Cars Waiting: N=0, S=1, E=0, W=2
+    - Inference: 5.78ms
+
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=0 W=2] ***
+
+*** SOUTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=3 E=0 W=2] ***
+[STEP 31] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 26)
+    - Cars Waiting: N=0, S=2, E=0, W=2
+    - Inference: 5.54ms
+
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=2 E=1 W=2] ***
+[STEP 32] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 2 car(s) (Total: 28)
+    - Cars Waiting: N=0, S=2, E=0, W=1
+    - Inference: 5.84ms
+
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=2 E=0 W=1] ***
+[STEP 33] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 2 car(s) (Total: 30)
+    - Cars Waiting: N=0, S=1, E=0, W=1
+    - Inference: 5.85ms
+
+[STEP 34] Green Light: North/South
+    - Cars Cleared: 1 car(s) (Total: 31)
+    - Cars Waiting: N=0, S=0, E=0, W=1
+    - Inference: 5.74ms
+
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=0 W=2] ***
+
+*** NORTH BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=0 W=2] ***
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=0 W=3] ***
+[STEP 35] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 32)
+    - Cars Waiting: N=1, S=0, E=0, W=2
+    - Inference: 9.01ms
+
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=1 W=2] ***
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=1 S=0 E=2 W=2] ***
+[STEP 36] Green Light: East/West
+    - Cars Cleared: 2 car(s) (Total: 34)
+    - Cars Waiting: N=1, S=0, E=1, W=1
+    - Inference: 6.35ms
+
+[STEP 37] Green Light: East/West
+    - Cars Cleared: 2 car(s) (Total: 36)
+    - Cars Waiting: N=1, S=0, E=0, W=0
+    - Inference: 5.73ms
+
+[STEP 38] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 1 car(s) (Total: 37)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.46ms
+
+[STEP 39] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 37)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.81ms
+
+[STEP 40] Green Light: North/South
+    - Cars Cleared: 0 car(s) (Total: 37)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.49ms
+
+
+*** EAST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=1 W=0] ***
+[STEP 41] PPO ACTION: Switch to GREEN East/West
+    - Cars Cleared: 1 car(s) (Total: 38)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 9.29ms
+
+
+*** WEST BUTTON PRESSED = CAR ARRIVAL = Queue: [N=0 S=0 E=0 W=1] ***
+[STEP 42] Green Light: East/West
+    - Cars Cleared: 1 car(s) (Total: 39)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.24ms
+
+[STEP 43] PPO ACTION: Switch to GREEN North/South
+    - Cars Cleared: 0 car(s) (Total: 39)
+    - Cars Waiting: N=0, S=0, E=0, W=0
+    - Inference: 5.23ms
+
+-----------------------------------------------------
+>> DEPLOYMENT RESULTS (Duration: 122.5s | 43 steps)
+-----------------------------------------------------
+
+Traffic Metrics:
+- Total cars cleared: 39 out of 39 (100.0%)
+- Button presses: N=9, S=13, E=9, W=8
+- Final queues: N=0, S=0, E=0, W=0 (Only 0 cars still waiting)
+
+Control Metrics:
+- Phase changes: 18
+- Yellow transitions: 18
+- Avg phase duration: 6.80s
+
+Performance Metrics:
+- Mean/Avg inference: 6.94ms
+- Max inference: 11.24ms
+- Min inference: 2.77ms
+- Std inference: 1.98ms
+- Real-time: YES
+
+
+[LOGGING] All data saved:
+    - Log: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/run_20251025_021656/deployment_log.csv
+    - Report: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/run_20251025_021656/deployment_report.txt
+    - Stats: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/run_20251025_021656/deployment_stats.json
+    - Plot: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/run_20251025_021656/deployment_viz.png
+    - Output: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/run_20251025_021656/terminal_output.txt
