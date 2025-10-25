@@ -692,7 +692,7 @@ def run_comparison_demo(model_path, vecnorm_path, duration=60):
         print(line)
     
     # Save to file
-    results_dir = '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/comparison_results'
+    results_dir = '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results'
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     comparison_file = os.path.join(results_dir, f"comparison_analysis_{timestamp}.txt")
     
