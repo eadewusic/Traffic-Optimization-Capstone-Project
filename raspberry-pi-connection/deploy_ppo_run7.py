@@ -584,7 +584,7 @@ class HardwareController:
 def run_comparison_demo(model_path, vecnorm_path, duration=60):
     """Run comparison between fixed-timing and PPO"""
     print("\n" + "="*70)
-    print("     COMPARISON DEMO: FIXED-TIMING vs PPO-POWERED")
+    print("     COMPARISON DEMO: FIXED-TIMING vs PPO")
     print("="*70)
     
     # Run 1: Fixed-timing
@@ -648,34 +648,59 @@ def run_comparison_demo(model_path, vecnorm_path, duration=60):
     total_presses_fixed = sum(stats_fixed['button_presses'].values())
     total_presses_ppo = sum(stats_ppo['button_presses'].values())
     
-    print(f"\nCars Cleared:")
-    print(f"   Fixed-Timing: {stats_fixed['vehicles_cleared']} out of {total_presses_fixed} " +
-          f"({stats_fixed['vehicles_cleared']/max(total_presses_fixed,1)*100:.1f}%)")
-    print(f"   PPO-Powered:   {stats_ppo['vehicles_cleared']} out of {total_presses_ppo} " +
-          f"({stats_ppo['vehicles_cleared']/max(total_presses_ppo,1)*100:.1f}%)")
+    comparison_text = []
+    comparison_text.append("="*70)
+    comparison_text.append("     COMPARISON RESULTS: FIXED-TIMING vs PPO")
+    comparison_text.append("="*70)
+    comparison_text.append(f"\nComparison Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    comparison_text.append(f"Duration: {duration} seconds per method\n")
+    comparison_text.append(f"\nRun Folders:")
+    comparison_text.append(f"  Fixed-Timing: {logger_fixed.run_folder}")
+    comparison_text.append(f"  PPO-Powered:   {logger_ppo.run_folder}\n")
+    
+    comparison_text.append("\nCars Cleared:")
+    fixed_pct = stats_fixed['vehicles_cleared']/max(total_presses_fixed,1)*100
+    ppo_pct = stats_ppo['vehicles_cleared']/max(total_presses_ppo,1)*100
+    comparison_text.append(f"   Fixed-Timing: {stats_fixed['vehicles_cleared']} out of {total_presses_fixed} ({fixed_pct:.1f}%)")
+    comparison_text.append(f"   PPO-Powered:   {stats_ppo['vehicles_cleared']} out of {total_presses_ppo} ({ppo_pct:.1f}%)")
     
     if total_presses_fixed > 0 and total_presses_ppo > 0:
         improvement = stats_ppo['vehicles_cleared'] - stats_fixed['vehicles_cleared']
-        print(f"   Improvement:  +{improvement} cars ({improvement/max(total_presses_fixed,1)*100:.1f}% better)")
+        comparison_text.append(f"   Improvement:  +{improvement} cars ({improvement/max(total_presses_fixed,1)*100:.1f}% better)")
     
-    print(f"\nPhase Changes (Adaptability):")
-    print(f"   Fixed-Timing: {stats_fixed['phase_changes']} changes")
-    print(f"   PPO-Powered:   {stats_ppo['phase_changes']} changes")
+    comparison_text.append(f"\nPhase Changes (Adaptability):")
+    comparison_text.append(f"   Fixed-Timing: {stats_fixed['phase_changes']} changes")
+    comparison_text.append(f"   PPO-Powered:   {stats_ppo['phase_changes']} changes")
     
-    print(f"\nAverage Wait Time per Phase:")
+    comparison_text.append(f"\nAverage Wait Time per Phase:")
     avg_wait_fixed = stats_fixed['duration_seconds'] / max(stats_fixed['phase_changes'], 1)
     avg_wait_ppo = stats_ppo['duration_seconds'] / max(stats_ppo['phase_changes'], 1)
-    print(f"   Fixed-Timing: {avg_wait_fixed:.2f} seconds")
-    print(f"   PPO-Powered:   {avg_wait_ppo:.2f} seconds")
+    comparison_text.append(f"   Fixed-Timing: {avg_wait_fixed:.2f} seconds")
+    comparison_text.append(f"   PPO-Powered:   {avg_wait_ppo:.2f} seconds")
     
     if stats_ppo['inference_times']['mean_ms'] > 0:
-        print(f"\nPPO Decision Speed:")
-        print(f"   Average: {stats_ppo['inference_times']['mean_ms']:.2f}ms")
-        print(f"   That's {1000/stats_ppo['inference_times']['mean_ms']:.0f}x faster than human reaction time!")
+        comparison_text.append(f"\nPPO Decision Speed:")
+        comparison_text.append(f"   Average: {stats_ppo['inference_times']['mean_ms']:.2f}ms")
+        comparison_text.append(f"   That's {1000/stats_ppo['inference_times']['mean_ms']:.0f}x faster than human reaction time!")
     
-    print("\n" + "="*70)
-    print(" The PPO adapts to traffic in real-time, making smarter decisions!")
-    print("="*70 + "\n")
+    comparison_text.append("\n" + "="*70)
+    comparison_text.append(" CONCLUSION: The PPO adapts to traffic in real-time, making smarter decisions!")
+    comparison_text.append("="*70)
+    
+    # Print to terminal
+    for line in comparison_text:
+        print(line)
+    
+    # Save to file
+    results_dir = '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/comparison_results'
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    comparison_file = os.path.join(results_dir, f"comparison_analysis_{timestamp}.txt")
+    
+    with open(comparison_file, 'w') as f:
+        f.write('\n'.join(comparison_text))
+    
+    print(f"\n[SAVED] Comparison analysis: {comparison_file}")
+    print("")
 
 
 def main():

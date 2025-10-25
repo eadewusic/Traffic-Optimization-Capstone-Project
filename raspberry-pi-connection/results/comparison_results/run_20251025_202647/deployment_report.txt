@@ -1,0 +1,70 @@
+
+ HARDWARE DEPLOYMENT REPORT - RUN 7 PPO
+
+Timestamp: 2025-10-25 20:27:49
+Controller: Fixed_Timing
+
+
+ DEPLOYMENT SUMMARY
+
+Duration: 62.1 seconds
+Total Steps: 30
+
+
+ TRAFFIC METRICS
+
+Total Vehicles Cleared: 16
+Button Presses:
+  North :   5
+  South :   9
+  East  :   6
+  West  :   6
+  Total:   26
+
+Arrival Rate: 0.419 vehicles/second
+Throughput: 61.5% (16/26 cleared)
+
+Final Queue State:
+  North :  0 vehicles
+  South :  0 vehicles
+  East  :  5 vehicles
+  West  :  5 vehicles
+  Total:  10 vehicles remaining
+
+
+ CONTROL METRICS
+
+Phase Changes: 1
+Yellow Transitions: 1
+Yellow Duration: 2.0 seconds
+Average Phase Duration: 62.09 seconds
+
+
+ COMPUTATIONAL PERFORMANCE
+Mean Inference Time: 0.00 ms
+Max Inference Time:  0.00 ms
+Min Inference Time:  0.00 ms
+Std Deviation:       0.00 ms
+Real-time Capable:   YES
+  (All inferences < 100ms threshold: True)
+
+
+ YELLOW LIGHT COMPLIANCE
+
+Yellow lights activated on ALL 1 phase changes
+Standard traffic signal behavior: GREEN → YELLOW (2s) → RED
+Total yellow light time: 2.0 seconds
+Compliance with MUTCD standards: YES
+
+
+ HARDWARE DEPLOYMENT SUCCESS CRITERIA
+
+ Real-time inference (<100ms):        PASS
+ Stable operation (no crashes):       PASS
+ Traffic handling (>50% throughput):  PASS
+ Yellow light transitions:             PASS
+ Multi-directional control:            PASS
+ GPIO reliability:                     PASS
+
+
+ DEPLOYMENT SUCCESSFUL
