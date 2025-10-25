@@ -1,4 +1,4 @@
-# Here's the analysis of Runs 1 (run_20251024_022329) & 2(run_20251025_021656)
+# Here's the analysis of Runs 1 (run_20251024_022329) & 2 (run_20251025_021656)
 
 ## Run 1: High Load Stress Test
 
