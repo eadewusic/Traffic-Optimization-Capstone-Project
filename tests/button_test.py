@@ -7,10 +7,10 @@ and continuously monitor the state of each button. When a button is pressed
 (signaling a LOW state), it prints a confirmation message to the console.
 
 Pinout (BCM):
-  North: GPIO 26 (Pin 37)
-  East: GPIO 25 (Pin 22)
-  South: GPIO 17 (Pin 11)
-  West: GPIO 8 (Pin 24)
+  North: GPIO 9 (Pin 21)
+  East: GPIO 10 (Pin 19)
+  South: GPIO 22 (Pin 15)
+  West: GPIO 17 (Pin 11)
   Common GND: Pin 39 (GND)
 """
 
@@ -18,10 +18,10 @@ import RPi.GPIO as GPIO
 import time
 
 BUTTONS = {
-    "North": 26,
-    "East": 25,
-    "South": 17,
-    "West": 8
+    "North": 9,
+    "East": 10,
+    "South": 22,
+    "West": 17
 }
 
 GPIO.setmode(GPIO.BCM)

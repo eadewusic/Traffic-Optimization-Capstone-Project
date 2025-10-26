@@ -12,14 +12,14 @@ Hardware Connections:
 LED MODULES (Output):
 - North: Red(GPIO 16), Yellow(GPIO 20), Green(GPIO 21)
 - East:  Red(GPIO 5),  Yellow(GPIO 6),  Green(GPIO 13)
-- South: Red(GPIO 23), Yellow(GPIO 24), Green(GPIO 22)
+- South: Red(GPIO 23), Yellow(GPIO 24), Green(GPIO 25)
 - West:  Red(GPIO 14), Yellow(GPIO 4),  Green(GPIO 18)
 
 BUTTONS (Input - connected to GND):
-- North: GPIO 26
-- East:  GPIO 25
-- South: GPIO 17
-- West:  GPIO 8
+- North: GPIO 9
+- East:  GPIO 10
+- South: GPIO 22
+- West:  GPIO 17
 
 Note: Buttons are configured with internal PULL_UP resistors, meaning the input is
 LOW when the button is pressed (connected to GND).
@@ -46,16 +46,16 @@ import time
 LED_MODULES = {
     "North": {"R": 16, "Y": 20, "G": 21},
     "East":  {"R": 5,  "Y": 6,  "G": 13},
-    "South": {"R": 23, "Y": 24, "G": 22},
+    "South": {"R": 23, "Y": 24, "G": 25},
     "West":  {"R": 14, "Y": 4, "G": 18}
 }
 
 # BUTTON PINS
 BUTTONS = {
-    "North": 26,
-    "East": 25,
-    "South": 17,
-    "West": 8
+    "North": 9,
+    "East": 10,
+    "South": 22,
+    "West": 17
 }
 
 GPIO.setmode(GPIO.BCM)
