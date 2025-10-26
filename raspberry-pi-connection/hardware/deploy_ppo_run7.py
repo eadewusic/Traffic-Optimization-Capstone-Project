@@ -47,11 +47,11 @@ sys.path.append('/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/enviro
 LED_PINS = {
     'north_red': 16, 'north_yellow': 20, 'north_green': 21,
     'east_red': 5, 'east_yellow': 6, 'east_green': 13,
-    'south_red': 23, 'south_yellow': 24, 'south_green': 22,
+    'south_red': 23, 'south_yellow': 24, 'south_green': 25,
     'west_red': 14, 'west_yellow': 4, 'west_green': 18
 }
 
-BUTTON_PINS = {'north': 26, 'east': 25, 'south': 17, 'west': 8}
+BUTTON_PINS = {'north': 9, 'east': 10, 'south': 22, 'west': 17}
 
 class DataLogger:
     """Comprehensive data logging for hardware deployment"""
