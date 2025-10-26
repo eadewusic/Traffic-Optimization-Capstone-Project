@@ -7,50 +7,42 @@ LED MODULES (12 outputs):
     Red:    GPIO 16 (Pin 36)  → Module R pin
     Yellow: GPIO 20 (Pin 38)  → Module Y pin
     Green:  GPIO 21 (Pin 40)  → Module G pin
-    GND:    Pin 34 (GND)      → Module GND pin
+    GND  →  Breadboard 2 (north traffic module) GND rail
   
   East Module:
     Red:    GPIO 5  (Pin 29) → Module R pin
     Yellow: GPIO 6  (Pin 31) → Module Y pin
     Green:  GPIO 13 (Pin 33) → Module G pin
-    GND:    Pin 30 (GND)     → Module GND pin
+    GND  →  Breadboard 2 (north traffic module) GND rail
   
   South Module:
     Red:    GPIO 23 (Pin 16) → Module R pin
     Yellow: GPIO 24 (Pin 18) → Module Y pin
-    Green:  GPIO 22 (Pin 15) → Module G pin
-    GND:    Pin 14 (GND)     → Module GND pin
+    Green:  GPIO 25 (Pin 22) → Module G pin
+    GND  →  Breadboard 2 (north traffic module) GND rail
   
   West Module:
     Red:    GPIO 14 (Pin 8)  → Module R pin
     Yellow: GPIO 4 (Pin 7)   → Module Y pin
     Green:  GPIO 18 (Pin 12) → Module G pin
-    GND:    Pin 9 (GND)      → Module GND pin
+    GND  →  Breadboard 2 (north traffic module) GND rail
 
 COOLING FAN (from Pi case):
   Fan +5V:  Pin 4 (5V Power)
   Fan GND:  Pin 6 (GND)
-  Fan PWM:  Pin 11 (GPIO 17)
+  Fan PWM:  Pin 5 (GPIO 3)
 
 BUTTONS:
-  North: GPIO 26 (Pin 37)
-  East: GPIO 25 (Pin 22)
-  South: GPIO 17 (Pin 11)
-  West: GPIO 8 (Pin 24)
+  North: GPIO 9 (Pin 21)
+  East: GPIO 10 (Pin 19)
+  South: GPIO 22 (Pin 15)
+  West: GPIO 17 (Pin 11)
   Common GND: Pin 39 (GND)
 
 BREADBOARDS CONNECTION:
     Pi GND (Pin 39) ─── Breadboard 1 (buttons) GND rail
-                            │
-    Breadboard 1 GND rail ─── Breadboard 2 (traffic module 1) GND rail
-                            │
-    Breadboard 2 GND rail ─── Breadboard 3 (traffic module 2) GND rail
-                            │
-    Breadboard 3 GND rail ─── Breadboard 4 (traffic module 3) GND rail
-                            │
-    Breadboard 4 GND rail ─── Breadboard 5 (traffic module 4) GND rail
-                            │
-    Breadboard 5 GND rail ─── Pi GND (Pin 25)
+    All LED Modules GND ─── Breadboard 2 (north traffic module) GND rail
+    Breadboard 2 (north traffic module) GND rail ─── Pi GND (Pin 25)
 """
 
 import RPi.GPIO as GPIO
@@ -59,11 +51,11 @@ import time
 LED_PINS = {
     'north_red': 16, 'north_yellow': 20, 'north_green': 21,
     'east_red': 5, 'east_yellow': 6, 'east_green': 13,
-    'south_red': 23, 'south_yellow': 24, 'south_green': 22,
-    'west_red': 14, 'west_yellow': 4, 'west_green': 18
+    'south_red': 23, 'south_yellow': 24, 'south_green': 25,
+    'west_red': 14, 'west_yellow': 4, 'west_green': 18,
 }
 
-BUTTON_PINS = {'north': 26, 'east': 25, 'south': 17, 'west': 8}
+BUTTON_PINS = {'north': 9, 'east': 10, 'south': 22, 'west': 17}
 
 def setup_gpio():
     GPIO.setmode(GPIO.BCM)
