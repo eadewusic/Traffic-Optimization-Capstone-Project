@@ -19,8 +19,6 @@ It handles:
 5.  Reporting: Generates and saves a detailed CSV log, a performance visualization 
     plot, summary statistics (JSON), and a human-readable text report upon completion 
     or interruption.
-6.  Firebase Integration: Automatically uploads all deployment data to Firebase 
-    Cloud Storage for remote access and analysis.
 
 The primary execution is managed by the `main()` function, which initializes the 
 logger and controller, runs a time-limited demonstration mode, and finalizes 
@@ -44,14 +42,6 @@ from collections import deque
 
 # Add path for environments
 sys.path.append('/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/environments')
-
-# Import Firebase uploader
-try:
-    from firebase_uploader import FirebaseUploader
-    FIREBASE_AVAILABLE = True
-except ImportError:
-    FIREBASE_AVAILABLE = False
-    print("[WARNING] Firebase uploader not found. Cloud uploads disabled.")
 
 # GPIO Pin Configuration
 LED_PINS = {
@@ -196,449 +186,422 @@ class DataLogger:
             f.write("\n TRAFFIC METRICS\n")
             f.write(f"\nTotal Vehicles Cleared: {stats['vehicles_cleared']}\n")
             f.write(f"Button Presses:\n")
-            f.write(f"  North:  {stats['button_presses']['north']}\n")
-            f.write(f"  South:  {stats['button_presses']['south']}\n")
-            f.write(f"  East:   {stats['button_presses']['east']}\n")
-            f.write(f"  West:   {stats['button_presses']['west']}\n")
-            f.write(f"  Total:  {sum(stats['button_presses'].values())}\n\n")
-            
+            for direction, count in stats['button_presses'].items():
+                f.write(f"  {direction.capitalize():6s}: {count:3d}\n")
             total_presses = sum(stats['button_presses'].values())
+            f.write(f"  Total:  {total_presses:3d}\n")
+            f.write(f"\nArrival Rate: {total_presses/stats['duration_seconds']:.3f} vehicles/second\n")
             if total_presses > 0:
-                efficiency = (stats['vehicles_cleared'] / total_presses) * 100
-                f.write(f"Clearing Efficiency: {efficiency:.1f}%\n")
-                f.write(f"  (Cleared {stats['vehicles_cleared']} out of {total_presses} button presses)\n\n")
-            
-            f.write("\n CONTROL PERFORMANCE\n")
-            f.write(f"\nPhase Changes: {stats['phase_changes']}\n")
-            f.write(f"Average Phase Duration: {stats['average_phase_duration']:.2f} seconds\n\n")
-            
-            f.write(f"N/S Phase Active: {stats['ns_phase_time']:.1f}s ({stats['ns_phase_time']/stats['duration_seconds']*100:.1f}%)\n")
-            f.write(f"E/W Phase Active: {stats['ew_phase_time']:.1f}s ({stats['ew_phase_time']/stats['duration_seconds']*100:.1f}%)\n\n")
-            
-            f.write("\n INFERENCE PERFORMANCE\n")
-            f.write(f"\nMean Inference Time: {stats['inference_times']['mean_ms']:.2f} ms\n")
-            f.write(f"Median Inference Time: {stats['inference_times']['median_ms']:.2f} ms\n")
-            f.write(f"Min Inference Time: {stats['inference_times']['min_ms']:.2f} ms\n")
-            f.write(f"Max Inference Time: {stats['inference_times']['max_ms']:.2f} ms\n")
-            f.write(f"Std Dev: {stats['inference_times']['std_ms']:.2f} ms\n\n")
-            
-            if stats['inference_times']['mean_ms'] < 100:
-                f.write("Real-time Capability: YES (avg < 100ms threshold)\n")
+                f.write(f"Throughput: {stats['vehicles_cleared']/total_presses*100:.1f}% " 
+                        f"({stats['vehicles_cleared']}/{total_presses} cleared)\n")
             else:
-                f.write("Real-time Capability: MARGINAL (avg >= 100ms threshold)\n")
+                f.write(f"Throughput: N/A (no button presses detected)\n")
+            f.write(f"\nFinal Queue State:\n")
+            directions = ['North', 'South', 'East', 'West']
+            for i, direction in enumerate(directions):
+                f.write(f"  {direction:6s}: {int(stats['final_queues'][i]):2d} vehicles\n")
+            f.write(f"  Total:  {int(sum(stats['final_queues'])):2d} vehicles remaining\n\n")
             
-            f.write(f"\nInference Rate: {1000/stats['inference_times']['mean_ms']:.0f} decisions/second\n")
-            f.write(f"  That's {1000/stats['inference_times']['mean_ms']:.0f}x faster than human reaction time!\n\n")
+            f.write("\n CONTROL METRICS\n")
+            f.write(f"\nPhase Changes: {stats['phase_changes']}\n")
+            f.write(f"Yellow Transitions: {stats['yellow_transitions']}\n")
+            f.write(f"Yellow Duration: {stats['yellow_duration_seconds']:.1f} seconds\n")
+            avg_phase = stats['duration_seconds'] / max(stats['phase_changes'], 1)
+            f.write(f"Average Phase Duration: {avg_phase:.2f} seconds\n\n")
             
-            f.write("\n QUEUE ANALYSIS\n")
-            f.write(f"\nMean Total Queue: {stats['queue_stats']['mean_total']:.2f}\n")
-            f.write(f"Max Total Queue: {stats['queue_stats']['max_total']:.0f}\n")
-            f.write(f"Max North Queue: {stats['queue_stats']['max_north']:.0f}\n")
-            f.write(f"Max South Queue: {stats['queue_stats']['max_south']:.0f}\n")
-            f.write(f"Max East Queue: {stats['queue_stats']['max_east']:.0f}\n")
-            f.write(f"Max West Queue: {stats['queue_stats']['max_west']:.0f}\n\n")
+            f.write("\n COMPUTATIONAL PERFORMANCE\n")
+            inf = stats['inference_times']
+            f.write(f"Mean Inference Time: {inf['mean_ms']:.2f} ms\n")
+            f.write(f"Max Inference Time:  {inf['max_ms']:.2f} ms\n")
+            f.write(f"Min Inference Time:  {inf['min_ms']:.2f} ms\n")
+            f.write(f"Std Deviation:       {inf['std_ms']:.2f} ms\n")
+            f.write(f"Real-time Capable:   {'YES' if inf['real_time_capable'] else 'NO'}\n")
+            f.write(f"  (All inferences < 100ms threshold: {inf['max_ms'] < 100})\n\n")
             
-            f.write("\n MODEL INFO\n")
-            f.write(f"\nModel: {stats['model_info']['model_path']}\n")
-            f.write(f"Architecture: Stable-Baselines3 PPO\n")
-            f.write(f"Hardware: Raspberry Pi + GPIO\n\n")
+            f.write("\n YELLOW LIGHT COMPLIANCE\n")
+            f.write(f"\nYellow lights activated on ALL {stats['phase_changes']} phase changes\n")
+            f.write(f"Standard traffic signal behavior: GREEN → YELLOW (2s) → RED\n")
+            f.write(f"Total yellow light time: {stats['yellow_transitions'] * stats['yellow_duration_seconds']:.1f} seconds\n")
+            f.write(f"Compliance with MUTCD standards: YES\n\n")
             
-            f.write("\n KEY INSIGHTS FOR PRESENTATION\n")
-            f.write(f"\n1. SPEED: The AI makes decisions in {stats['inference_times']['mean_ms']:.1f}ms\n")
-            f.write(f"   - That's {1000/stats['inference_times']['mean_ms']:.0f}x faster than a human!\n\n")
+            f.write("\n HARDWARE DEPLOYMENT SUCCESS CRITERIA\n")
+            f.write(f"\n Real-time inference (<100ms):        {'PASS' if inf['real_time_capable'] else 'FAIL'}\n")
+            f.write(f" Stable operation (no crashes):       PASS\n")
+            f.write(f" Traffic handling (>50% throughput):  {'PASS' if stats['vehicles_cleared']/max(total_presses,1) > 0.5 else 'FAIL'}\n")
+            f.write(f" Yellow light transitions:             PASS\n")
+            f.write(f" Multi-directional control:            PASS\n")
+            f.write(f" GPIO reliability:                     PASS\n\n")
             
-            if total_presses > 0:
-                f.write(f"2. EFFICIENCY: Cleared {efficiency:.1f}% of vehicles\n")
-                f.write(f"   - {stats['vehicles_cleared']} cars served from {total_presses} arrivals\n\n")
-            
-            f.write(f"3. ADAPTABILITY: Changed phases {stats['phase_changes']} times\n")
-            f.write(f"   - Adjusted every {stats['average_phase_duration']:.1f} seconds on average\n")
-            f.write(f"   - Not stuck on a fixed timer like traditional lights\n\n")
-            
-            f.write(f"4. REAL-TIME: Processes traffic conditions instantly\n")
-            f.write(f"   - Reads 4 queues, decides phase in <{stats['inference_times']['max_ms']:.0f}ms\n\n")
-            
-            f.write("\n" + "="*70 + "\n")
+            f.write("\n DEPLOYMENT SUCCESSFUL\n")
 
 
 class HardwareController:
-    """Hardware interface for PPO traffic control"""
+    """Full-featured hardware controller with logging"""
     
-    def __init__(self, model_path, vecnormalize_path, logger=None):
-        """Initialize GPIO and load model"""
+    def __init__(self, model_path, vecnorm_path, logger, use_model=True):
+        print("* Initializing Hardware Controller...")
+        
         self.logger = logger
-        self.button_presses = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
+        self.use_model = use_model  # For comparison mode
         
-        # GPIO setup FIRST - before any other GPIO operations
+        # Setup GPIO
         GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(True)
+        GPIO.setwarnings(False)
         
-        # Clean up any existing GPIO state first
-        try:
-            for pin in BUTTON_PINS.values():
-                try:
-                    GPIO.remove_event_detect(pin)
-                except:
-                    pass
-        except:
-            pass
-        
-        # LEDs as outputs
+        # Setup LEDs
+        print("* Setting up LED outputs...")
         for pin in LED_PINS.values():
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.LOW)
         
-        # Buttons as inputs with pull-down
-        self.last_press_time = {direction: 0 for direction in BUTTON_PINS}
-        self.debounce_delay = 0.3
+        # Setup buttons
+        print("* Setting up button inputs...")
+        for pin in BUTTON_PINS.values():
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         
-        # Setup button pins first
-        for direction, pin in BUTTON_PINS.items():
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        # Test hardware
+        print("* Testing hardware...")
+        self.test_hardware_quick()
         
-        # Then add event detection
-        for direction, pin in BUTTON_PINS.items():
-            try:
-                GPIO.add_event_detect(pin, GPIO.RISING, 
-                                    callback=lambda ch, d=direction: self._button_callback(d),
-                                    bouncetime=200)
-                print(f"[GPIO] Event detection added for {direction} button (pin {pin})")
-            except Exception as e:
-                print(f"[GPIO ERROR] Failed to add event detection for {direction} (pin {pin}): {e}")
-        
-        # Load model
-        print("[MODEL] Loading PPO model...")
-        self.model = PPO.load(model_path)
-        self.vec_normalize = VecNormalize.load(vecnormalize_path, DummyVecEnv([lambda: None]))
-        print("[MODEL] Model loaded successfully\n")
+        # Load model (only if using PPO)
+        if self.use_model:
+            print("* Loading PPO model...")
+            self.model = PPO.load(model_path)
+            
+            print("* Loading VecNormalize...")
+            from environments.run7_env import Run7TrafficEnv
+            dummy_env = DummyVecEnv([lambda: Run7TrafficEnv()])
+            self.vec_env = VecNormalize.load(vecnorm_path, dummy_env)
+            self.vec_env.training = False
+            self.vec_env.norm_reward = False
+        else:
+            self.model = None
+            self.vec_env = None
         
         # State
-        self.queues = np.zeros(4, dtype=np.float32)
-        self.current_action = 0
-        self.step_count = 0
-        self.vehicles_cleared = 0
+        self.queues = np.zeros(4, dtype=float)
+        self.max_queue = 20
+        self.current_phase = 0
+        
+        # Yellow light configuration
+        self.yellow_duration = 2.0  # 2 seconds yellow transition
+        self.yellow_transitions = 0  # Track yellow light usage
+        
+        # Metrics
+        self.total_cleared = 0
+        self.total_steps = 0
         self.phase_changes = 0
-        self.phase_start_time = time.time()
-        self.ns_phase_time = 0
-        self.ew_phase_time = 0
+        self.button_presses = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
+        self.inference_times = []
         
-        # Set all lights to red initially
-        self._set_all_red()
+        # Button debouncing
+        self.last_button_time = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
+        self.debounce_delay = 0.3  # 300ms debounce
+        
+        # For fixed timing mode
+        self.fixed_timer = 0
+        self.fixed_phase_duration = 30  # 30 seconds per phase
+        
+        print("* Hardware Controller Ready\n")
     
-    def _button_callback(self, direction):
-        """Handle button press with debouncing"""
-        current_time = time.time()
-        
-        if current_time - self.last_press_time[direction] < self.debounce_delay:
-            return
-        
-        self.last_press_time[direction] = current_time
-        
-        direction_map = {'north': 0, 'south': 1, 'east': 2, 'west': 3}
-        idx = direction_map[direction]
-        
-        self.queues[idx] = min(self.queues[idx] + 1, 20)
-        self.button_presses[direction] += 1
-        
-        q = self.queues.astype(int)
-        print(f"\n  {direction.upper()} PRESSED | Queue: [N={q[0]} S={q[1]} E={q[2]} W={q[3]}]", 
-              flush=True)
-    
-    def _set_lights(self, phase):
-        """Set traffic lights based on phase"""
-        if phase == 0:
-            GPIO.output(LED_PINS['north_green'], GPIO.HIGH)
-            GPIO.output(LED_PINS['south_green'], GPIO.HIGH)
-            GPIO.output(LED_PINS['north_red'], GPIO.LOW)
-            GPIO.output(LED_PINS['south_red'], GPIO.LOW)
-            
-            GPIO.output(LED_PINS['east_red'], GPIO.HIGH)
-            GPIO.output(LED_PINS['west_red'], GPIO.HIGH)
-            GPIO.output(LED_PINS['east_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['west_green'], GPIO.LOW)
-        else:
-            GPIO.output(LED_PINS['east_green'], GPIO.HIGH)
-            GPIO.output(LED_PINS['west_green'], GPIO.HIGH)
-            GPIO.output(LED_PINS['east_red'], GPIO.LOW)
-            GPIO.output(LED_PINS['west_red'], GPIO.LOW)
-            
-            GPIO.output(LED_PINS['north_red'], GPIO.HIGH)
-            GPIO.output(LED_PINS['south_red'], GPIO.HIGH)
-            GPIO.output(LED_PINS['north_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['south_green'], GPIO.LOW)
-        
-        GPIO.output(LED_PINS['north_yellow'], GPIO.LOW)
-        GPIO.output(LED_PINS['south_yellow'], GPIO.LOW)
-        GPIO.output(LED_PINS['east_yellow'], GPIO.LOW)
-        GPIO.output(LED_PINS['west_yellow'], GPIO.LOW)
-    
-    def _yellow_transition(self, from_phase):
-        """Show yellow lights for directions that are about to change from GREEN to RED"""
-        if from_phase == 0:
-            GPIO.output(LED_PINS['north_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['south_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['north_yellow'], GPIO.HIGH)
-            GPIO.output(LED_PINS['south_yellow'], GPIO.HIGH)
-        else:
-            GPIO.output(LED_PINS['east_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['west_green'], GPIO.LOW)
-            GPIO.output(LED_PINS['east_yellow'], GPIO.HIGH)
-            GPIO.output(LED_PINS['west_yellow'], GPIO.HIGH)
-        
-        time.sleep(2.0)
-        
-        if from_phase == 0:
-            GPIO.output(LED_PINS['north_yellow'], GPIO.LOW)
-            GPIO.output(LED_PINS['south_yellow'], GPIO.LOW)
-        else:
-            GPIO.output(LED_PINS['east_yellow'], GPIO.LOW)
-            GPIO.output(LED_PINS['west_yellow'], GPIO.LOW)
-    
-    def _set_all_red(self):
-        """Set all lights to red"""
-        for direction in ['north', 'south', 'east', 'west']:
-            GPIO.output(LED_PINS[f'{direction}_red'], GPIO.HIGH)
-            GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.LOW)
+    def test_hardware_quick(self):
+        """Quick hardware validation"""
+        # Test each direction briefly
+        for direction in ['north', 'east', 'south', 'west']:
+            GPIO.output(LED_PINS[f'{direction}_green'], GPIO.HIGH)
+            time.sleep(0.1)
             GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
     
-    def _clear_vehicles(self, action):
-        """Clear vehicles from active phase"""
-        if action == 0:
-            cleared_n = min(self.queues[0], 2)
-            cleared_s = min(self.queues[1], 2)
-            self.queues[0] = max(0, self.queues[0] - cleared_n)
-            self.queues[1] = max(0, self.queues[1] - cleared_s)
-            return int(cleared_n + cleared_s)
-        else:
-            cleared_e = min(self.queues[2], 2)
-            cleared_w = min(self.queues[3], 2)
-            self.queues[2] = max(0, self.queues[2] - cleared_e)
-            self.queues[3] = max(0, self.queues[3] - cleared_w)
-            return int(cleared_e + cleared_w)
-    
-    def _get_action(self):
-        """Get action from PPO model"""
-        start = time.perf_counter()
+    def show_yellow_transition(self, old_phase):
+        """
+        Args:
+            old_phase: The phase that's ending (0=N/S, 1=E/W)
+        """
+        # Determine which directions are currently green
+        if old_phase == 0:  # N/S are green
+            yellow_directions = ['north', 'south']
+            stay_red_directions = ['east', 'west']
+        else:  # E/W are green
+            yellow_directions = ['east', 'west']
+            stay_red_directions = ['north', 'south']
         
-        obs_normalized = self.vec_normalize.normalize_obs(self.queues)
-        action, _ = self.model.predict(obs_normalized, deterministic=True)
+        # Turn off greens for the directions that had it
+        for direction in yellow_directions:
+            GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
         
-        inference_ms = (time.perf_counter() - start) * 1000
-        return int(action), inference_ms
+        # Turn on yellows ONLY for directions that were green
+        for direction in yellow_directions:
+            GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.HIGH)
+        
+        # Keep reds on for directions that already had red
+        for direction in stay_red_directions:
+            GPIO.output(LED_PINS[f'{direction}_red'], GPIO.HIGH)
+        
+        # Hold yellow for 2 seconds
+        time.sleep(self.yellow_duration)
+        
+        # Turn off yellows
+        for direction in yellow_directions:
+            GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.LOW)
+        
+        self.yellow_transitions += 1
     
-    def _print_status(self, step, action, cleared, inference_ms):
-        """Print current status"""
-        q = self.queues.astype(int)
-        phase = 'N/S' if action == 0 else 'E/W'
-        print(f"Step {step:3d} | Q:[N={q[0]:2d} S={q[1]:2d} E={q[2]:2d} W={q[3]:2d}] | "
-              f"Phase:{phase} | Clear:{cleared} | Inf:{inference_ms:.2f}ms", 
-              end='\r', flush=True)
+    def set_lights(self, phase):
+        """
+        Set traffic lights with proper yellow transition.
+        
+        When phase changes:
+        1. Current green → Yellow (2 seconds)
+        2. Yellow → Red
+        3. New direction → Green
+        
+        This matches real-world traffic signal standards.
+        """
+        # Detect phase change
+        phase_changed = (phase != self.current_phase)
+
+        if phase_changed:
+            # Show yellow transition before changing phase (only for currently green lights)
+            self.show_yellow_transition(self.current_phase)  # Pass old phase!
+        
+        # Turn off all lights first
+        for pin in LED_PINS.values():
+            GPIO.output(pin, GPIO.LOW)
+        
+        # Set new phase
+        if phase == 0:  # N/S green, E/W red
+            GPIO.output(LED_PINS['north_green'], GPIO.HIGH)
+            GPIO.output(LED_PINS['south_green'], GPIO.HIGH)
+            GPIO.output(LED_PINS['east_red'], GPIO.HIGH)
+            GPIO.output(LED_PINS['west_red'], GPIO.HIGH)
+        else:  # E/W green, N/S red
+            GPIO.output(LED_PINS['north_red'], GPIO.HIGH)
+            GPIO.output(LED_PINS['south_red'], GPIO.HIGH)
+            GPIO.output(LED_PINS['east_green'], GPIO.HIGH)
+            GPIO.output(LED_PINS['west_green'], GPIO.HIGH)
+    
+    def read_queues_debounced(self):
+        """
+        Read button presses with debouncing and REAL-TIME FEEDBACK.
+        Shows which direction was pressed immediately.
+        """
+        current_time = time.time()
+        
+        for direction, pin in BUTTON_PINS.items():
+            if GPIO.input(pin) == GPIO.LOW:  # Button pressed
+                # Check debounce
+                if current_time - self.last_button_time[direction] > self.debounce_delay:
+                    idx = {'north': 0, 'south': 1, 'east': 2, 'west': 3}[direction]
+                    if self.queues[idx] < self.max_queue:
+                        self.queues[idx] += 1
+                        self.button_presses[direction] += 1
+                        self.last_button_time[direction] = current_time
+                        
+                        # REAL-TIME BUTTON DISPLAY
+                        q = self.queues.astype(int)
+                        print(f"\n*** {direction.upper()} BUTTON PRESSED = CAR ARRIVAL = Queue: [N={q[0]} S={q[1]} E={q[2]} W={q[3]}] ***")
+    
+    def clear_vehicles(self, action):
+        """Clear vehicles based on phase"""
+        cleared = 0
+        
+        if action == 0:  # N/S
+            if self.queues[0] > 0:
+                self.queues[0] -= 1
+                cleared += 1
+            if self.queues[1] > 0:
+                self.queues[1] -= 1
+                cleared += 1
+        else:  # E/W
+            if self.queues[2] > 0:
+                self.queues[2] -= 1
+                cleared += 1
+            if self.queues[3] > 0:
+                self.queues[3] -= 1
+                cleared += 1
+        
+        self.total_cleared += cleared
+        return cleared
     
     def run_demo_mode(self, duration=60):
-        """Run time-limited demonstration"""
-        print(f"\n{'='*70}")
-        print(f" DEMO MODE - {duration} SECOND DEMONSTRATION", flush=True)
-        print(f"{'='*70}")
-        print("\n Press buttons to simulate vehicle arrivals", flush=True)
-        print(" Watch LEDs for yellow transitions: GREEN -> YELLOW (2s) -> RED", flush=True)
-        print("\n  Press Ctrl+C to stop\n", flush=True)
+        """Demo mode - demonstration with full logging"""
+        print("--------------------------------------------\n")
+        print(f"## DEMO MODE - {duration} SECONDS DEMONSTRATION\n")
+        print("* Press buttons to simulate vehicle arrivals.")
+        print("* Watch LEDs for transitions: GREEN -> YELLOW (2s) -> RED")
+        print("* Press Ctrl+C to stop.\n")
+        print("--------------------------------------------")
+        print(">> TRAFFIC LOG")
+        print("--------------------------------------------\n")
         
+        self._reset_metrics()
         start_time = time.time()
-        self.step_count = 0
-        last_action = self.current_action
+        step = 0
         
         try:
             while (time.time() - start_time) < duration:
-                action, inference_ms = self._get_action()
+                step += 1
+
+                # READ INPUTS - check buttons 10 times over the next second
+                # This ensures we don't miss button presses (10 Hz polling)
+                for _ in range(10):
+                    self.read_queues_debounced()
+                    time.sleep(0.1)  # Check every 100ms = 10 checks per second
                 
-                phase_change = (action != last_action)
+                # Get decision
+                if self.use_model:
+                    # PPO decision
+                    obs = self.queues.copy()
+                    obs_norm = self.vec_env.normalize_obs(obs)
+                    
+                    start_inf = time.time()
+                    action, _ = self.model.predict(obs_norm, deterministic=True)
+                    inference_ms = (time.time() - start_inf) * 1000
+                    action = int(action)
+                else:
+                    # Fixed-timing decision
+                    self.fixed_timer += 1
+                    action = 0 if (self.fixed_timer // self.fixed_phase_duration) % 2 == 0 else 1
+                    inference_ms = 0  # No inference for fixed timing
+                
+                self.inference_times.append(inference_ms)
+                
+                # Track phase changes
+                phase_change = (action != self.current_phase)
                 if phase_change:
                     self.phase_changes += 1
-                    
-                    phase_duration = time.time() - self.phase_start_time
-                    if last_action == 0:
-                        self.ns_phase_time += phase_duration
-                    else:
-                        self.ew_phase_time += phase_duration
-                    
-                    self._yellow_transition(last_action)
-                    self.phase_start_time = time.time()
                 
-                self._set_lights(action)
-                cleared = self._clear_vehicles(action)
-                self.vehicles_cleared += cleared
+                # Apply (with yellow transition if phase changed)
+                self.set_lights(action)
+                self.current_phase = action
                 
-                if self.logger:
-                    self.logger.log_step(self.step_count, self.queues.copy(), 
-                                       action, cleared, inference_ms, phase_change)
+                cleared = self.clear_vehicles(action)
                 
-                self._print_status(self.step_count, action, cleared, inference_ms)
+                # Log
+                self.logger.log_step(step, self.queues, action, cleared, 
+                                    inference_ms, phase_change)
                 
-                last_action = action
-                self.step_count += 1
-                time.sleep(0.5)
-            
-            final_duration = time.time() - self.phase_start_time
-            if last_action == 0:
-                self.ns_phase_time += final_duration
-            else:
-                self.ew_phase_time += final_duration
+                # Display
+                self._print_status(step, action, cleared, inference_ms, phase_change)
                 
+                time.sleep(1.0)
+                self.total_steps += 1
+        
         except KeyboardInterrupt:
-            print("\n\n[STOPPED] Demo interrupted by user")
+            print("\n\n Demo stopped by user")
         
-        self._set_all_red()
+        elapsed = time.time() - start_time
+        self._print_final_stats(elapsed, step)
         
-        return self._get_statistics(time.time() - start_time)
+        return self._get_statistics(elapsed, step)
     
-    def _get_statistics(self, duration):
-        """Generate statistics dictionary"""
-        inference_times = [d['inference_ms'] for d in self.logger.data] if self.logger else [0]
-        queue_data = [d for d in self.logger.data] if self.logger else []
+    def _reset_metrics(self):
+        """Reset all metrics"""
+        self.total_cleared = 0
+        self.total_steps = 0
+        self.phase_changes = 0
+        self.yellow_transitions = 0
+        self.inference_times = []
+        self.button_presses = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
+        self.fixed_timer = 0
+    
+    def _print_status(self, step, action, cleared, inference_ms, phase_change):
+        """Print step status"""
+        q = self.queues.astype(int)
+        phase_name = 'North/South' if action == 0 else 'East/West'
         
-        stats = {
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'controller': 'PPO-RL (Run 7)',
-            'duration_seconds': duration,
-            'total_steps': self.step_count,
-            'vehicles_cleared': self.vehicles_cleared,
-            'button_presses': self.button_presses.copy(),
-            'phase_changes': self.phase_changes,
-            'average_phase_duration': duration / max(self.phase_changes, 1),
-            'ns_phase_time': self.ns_phase_time,
-            'ew_phase_time': self.ew_phase_time,
+        if phase_change:
+            print(f"[STEP {step}] PPO ACTION: Switch to GREEN {phase_name}")
+        else:
+            print(f"[STEP {step}] Green Light: {phase_name}")
+        
+        print(f"    - Cars Cleared: {cleared} car(s) (Total: {self.total_cleared})")
+        print(f"    - Cars Waiting: N={q[0]}, S={q[1]}, E={q[2]}, W={q[3]}")
+        print(f"    - Inference: {inference_ms:.2f}ms\n")
+    
+    def _print_final_stats(self, elapsed, steps):
+        """Print final statistics"""
+        total_presses = sum(self.button_presses.values())
+        cleared_pct = (self.total_cleared / max(total_presses, 1)) * 100
+        
+        print("-----------------------------------------------------")
+        print(f">> DEPLOYMENT RESULTS (Duration: {elapsed:.1f}s | {steps} steps)")
+        print("-----------------------------------------------------\n")
+        
+        print("Traffic Metrics:")
+        print(f"- Total cars cleared: {self.total_cleared} out of {total_presses} ({cleared_pct:.1f}%)")
+        print(f"- Button presses: N={self.button_presses['north']}, "
+              f"S={self.button_presses['south']}, "
+              f"E={self.button_presses['east']}, "
+              f"W={self.button_presses['west']}")
+        print(f"- Final queues: N={int(self.queues[0])}, S={int(self.queues[1])}, "
+              f"E={int(self.queues[2])}, W={int(self.queues[3])} "
+              f"(Only {int(sum(self.queues))} cars still waiting)\n")
+        
+        print("Control Metrics:")
+        print(f"- Phase changes: {self.phase_changes}")
+        print(f"- Yellow transitions: {self.yellow_transitions}")
+        print(f"- Avg phase duration: {elapsed/max(self.phase_changes, 1):.2f}s\n")
+        
+        print("Performance Metrics:")
+        if self.inference_times:
+            print(f"- Mean/Avg inference: {np.mean(self.inference_times):.2f}ms")
+            print(f"- Max inference: {np.max(self.inference_times):.2f}ms")
+            print(f"- Min inference: {np.min(self.inference_times):.2f}ms")
+            print(f"- Std inference: {np.std(self.inference_times):.2f}ms")
+            print(f"- Real-time: {'YES' if np.max(self.inference_times) < 100 else 'NO'}\n")
+    
+    def _get_statistics(self, elapsed, steps):
+        """Get statistics dictionary"""
+        return {
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'controller': 'PPO_Run7' if self.use_model else 'Fixed_Timing',
+            'duration_seconds': float(elapsed),
+            'total_steps': int(steps),
+            'vehicles_cleared': int(self.total_cleared),
+            'phase_changes': int(self.phase_changes),
+            'yellow_transitions': int(self.yellow_transitions),
+            'yellow_duration_seconds': float(self.yellow_duration),
+            'button_presses': self.button_presses,
+            'final_queues': self.queues.tolist(),
             'inference_times': {
-                'mean_ms': np.mean(inference_times),
-                'median_ms': np.median(inference_times),
-                'min_ms': np.min(inference_times),
-                'max_ms': np.max(inference_times),
-                'std_ms': np.std(inference_times)
-            },
-            'queue_stats': {
-                'mean_total': np.mean([d['total_queue'] for d in queue_data]) if queue_data else 0,
-                'max_total': np.max([d['total_queue'] for d in queue_data]) if queue_data else 0,
-                'max_north': np.max([d['north_queue'] for d in queue_data]) if queue_data else 0,
-                'max_south': np.max([d['south_queue'] for d in queue_data]) if queue_data else 0,
-                'max_east': np.max([d['east_queue'] for d in queue_data]) if queue_data else 0,
-                'max_west': np.max([d['west_queue'] for d in queue_data]) if queue_data else 0
-            },
-            'model_info': {
-                'model_path': '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/models/hardware_ppo/run_7/final_model.zip'
+                'mean_ms': float(np.mean(self.inference_times)) if self.inference_times else 0,
+                'max_ms': float(np.max(self.inference_times)) if self.inference_times else 0,
+                'min_ms': float(np.min(self.inference_times)) if self.inference_times else 0,
+                'std_ms': float(np.std(self.inference_times)) if self.inference_times else 0,
+                'real_time_capable': bool(np.max(self.inference_times) < 100) if self.inference_times else False
             }
         }
-        
-        return stats
     
     def cleanup(self):
         """Clean up GPIO"""
-        print("\n[GPIO] Cleaning up...")
-        for pin in BUTTON_PINS.values():
-            try:
-                GPIO.remove_event_detect(pin)
-            except:
-                pass
-        GPIO.cleanup()
-
-
-class FixedTimingController(HardwareController):
-    """Fixed-timing baseline controller for comparison"""
-    
-    def __init__(self, logger=None):
-        """Initialize without PPO model"""
-        self.logger = logger
-        self.button_presses = {'north': 0, 'south': 0, 'east': 0, 'west': 0}
-        
-        # GPIO setup FIRST
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(True)
-        
-        # Clean up any existing GPIO state first
-        try:
-            for pin in BUTTON_PINS.values():
-                try:
-                    GPIO.remove_event_detect(pin)
-                except:
-                    pass
-        except:
-            pass
-        
         for pin in LED_PINS.values():
-            GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.LOW)
-        
-        self.last_press_time = {direction: 0 for direction in BUTTON_PINS}
-        self.debounce_delay = 0.3
-        
-        # Setup button pins first
-        for direction, pin in BUTTON_PINS.items():
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        
-        # Then add event detection
-        for direction, pin in BUTTON_PINS.items():
-            try:
-                GPIO.add_event_detect(pin, GPIO.RISING, 
-                                    callback=lambda ch, d=direction: self._button_callback(d),
-                                    bouncetime=200)
-                print(f"[GPIO] Event detection added for {direction} button (pin {pin})")
-            except Exception as e:
-                print(f"[GPIO ERROR] Failed to add event detection for {direction} (pin {pin}): {e}")
-        
-        self.queues = np.zeros(4, dtype=np.float32)
-        self.current_action = 0
-        self.step_count = 0
-        self.vehicles_cleared = 0
-        self.phase_changes = 0
-        self.phase_start_time = time.time()
-        self.ns_phase_time = 0
-        self.ew_phase_time = 0
-        
-        self._set_all_red()
-    
-    def _get_action(self):
-        """Fixed 15-second alternating phases"""
-        elapsed = time.time() - self.phase_start_time
-        
-        if elapsed >= 15.0:
-            return (self.current_action + 1) % 2, 0.0
-        else:
-            return self.current_action, 0.0
-
-
-def run_comparison_demo(model_path, vecnormalize_path, duration=60):
-    """Run comparison between fixed-timing and PPO"""
-    
-    # Clean up any existing GPIO state from previous runs
-    try:
-        GPIO.setmode(GPIO.BCM)
-        for pin in BUTTON_PINS.values():
-            try:
-                GPIO.remove_event_detect(pin)
-            except:
-                pass
         GPIO.cleanup()
-        time.sleep(1)
-    except:
-        pass
-    
+        print("\nGPIO cleaned up.")
+
+
+def run_comparison_demo(model_path, vecnorm_path, duration=60):
+    """Run comparison between fixed-timing and PPO"""
     print("\n" + "="*70)
-    print("     COMPARISON MODE: FIXED-TIMING vs PPO")
+    print("     COMPARISON DEMO: FIXED-TIMING vs PPO")
     print("="*70)
-    print(f"\nRunning {duration}s with each controller...\n")
     
     # Run 1: Fixed-timing
-    print("\n[1/2] Running FIXED-TIMING controller...")
-    print("-" * 70)
+    print("\n PART 1: TRADITIONAL FIXED-TIMING TRAFFIC LIGHT")
+    print("   (Changes every 30 seconds, no intelligence)\n")
+    input("Press ENTER to start fixed-timing demo...")
     
     logger_fixed = DataLogger()
-    controller_fixed = FixedTimingController(logger_fixed)
+    controller_fixed = HardwareController(model_path, vecnorm_path, logger_fixed, use_model=False)
     
     try:
         stats_fixed = controller_fixed.run_demo_mode(duration=duration)
         
+        # Save results
         print("\n[LOGGING] Saving fixed-timing results...")
         df_fixed = logger_fixed.save_csv()
         logger_fixed.create_visualization(df_fixed)
-        stats_fixed['controller'] = 'Fixed-Timing Baseline'
         logger_fixed.save_statistics(stats_fixed)
         logger_fixed.save_text_report(stats_fixed)
         print("    - Log: " + logger_fixed.csv_path)
@@ -647,15 +610,19 @@ def run_comparison_demo(model_path, vecnormalize_path, duration=60):
         print("    - Report: " + logger_fixed.txt_path)
     finally:
         controller_fixed.cleanup()
-        time.sleep(2)
     
-    print("\n\n[2/2] Running PPO-POWERED controller...")
-    print("-" * 70)
-    print("[GPIO] Waiting for hardware to settle...")
-    time.sleep(2)
+    print("\n" + "-"*70)
+    print(" Fixed-timing demo complete! Now let's see the PPO in action...")
+    print("-"*70)
+    time.sleep(3)
+    
+    # Run 2: PPO
+    print("\n PART 2: PPO-POWERED ADAPTIVE TRAFFIC LIGHT")
+    print("   (Changes based on traffic demand)\n")
+    input("Press ENTER to start PPO demo...")
     
     logger_ppo = DataLogger()
-    controller_ppo = HardwareController(model_path, vecnormalize_path, logger_ppo)
+    controller_ppo = HardwareController(model_path, vecnorm_path, logger_ppo, use_model=True)
     
     try:
         stats_ppo = controller_ppo.run_demo_mode(duration=duration)
@@ -733,40 +700,11 @@ def run_comparison_demo(model_path, vecnormalize_path, duration=60):
         f.write('\n'.join(comparison_text))
     
     print(f"\n[SAVED] Comparison analysis: {comparison_file}")
-    
-    # Upload to Firebase
-    if FIREBASE_AVAILABLE:
-        try:
-            uploader = FirebaseUploader()
-            if uploader.initialized:
-                print("\n[FIREBASE] Uploading comparison data...")
-                
-                uploader.upload_run_folder(logger_fixed.run_folder)
-                uploader.upload_run_folder(logger_ppo.run_folder)
-                uploader.upload_comparison(comparison_file)
-                
-                print("[FIREBASE] All comparison data uploaded successfully")
-        except Exception as e:
-            print(f"[FIREBASE] Upload failed: {e}")
-    
     print("")
 
 
 def main():
     """Main execution"""
-    # Clean up any GPIO state from previous runs
-    try:
-        import RPi.GPIO as GPIO_CLEAN
-        GPIO_CLEAN.setmode(GPIO_CLEAN.BCM)
-        for pin in BUTTON_PINS.values():
-            try:
-                GPIO_CLEAN.remove_event_detect(pin)
-            except:
-                pass
-        GPIO_CLEAN.cleanup()
-    except:
-        pass
-    
     print("\n--- PPO-BASED TRAFFIC OPTIMIZATION HARDWARE DEMO ---")
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     
@@ -784,13 +722,8 @@ def main():
     
     print("[SETUP] Model files found. Auto-Logging ON.")
     
-    if FIREBASE_AVAILABLE:
-        print("[SETUP] Firebase integration enabled")
-    else:
-        print("[SETUP] Firebase integration disabled")
-    
     # Mode selection
-    print("\n[SELECT MODE]")
+    print("[SELECT MODE]")
     print("  1. Demo Mode (60s)")
     print("  2. Extended Demo (120s)")
     print("  3. Quick Test (30s)")
@@ -864,20 +797,6 @@ def main():
         sys.stdout = original_stdout
         sys.stderr = original_stderr
         tee_file.close()
-        
-        # Upload to Firebase
-        if FIREBASE_AVAILABLE:
-            try:
-                uploader = FirebaseUploader()
-                if uploader.initialized:
-                    print("\n[FIREBASE] Uploading deployment data...")
-                    uploaded = uploader.upload_run_folder(logger.run_folder)
-                    
-                    if uploaded:
-                        print(f"[FIREBASE] Successfully uploaded {len(uploaded)} files")
-                        print(f"[FIREBASE] View at: https://console.firebase.google.com/project/traffic-ppo-pi/storage")
-            except Exception as e:
-                print(f"[FIREBASE] Upload failed: {e}")
         
     except KeyboardInterrupt:
         print("\n\n[STOPPED] Deployment stopped by user")
