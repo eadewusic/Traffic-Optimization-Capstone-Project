@@ -1,30 +1,3 @@
-"""
-PPO-Based Traffic Light Controller Hardware Deployment Script
-
-This script manages the real-world deployment of a Proximal Policy Optimization (PPO) 
-Reinforcement Learning model to control a four-way traffic light intersection 
-using Raspberry Pi GPIO.
-
-It handles:
-1.  Hardware Control: Initializes and manages GPIO pins for traffic LEDs (North, 
-    South, East, West) and button inputs for vehicle queue simulation, including 
-    implementing proper yellow light transitions as per traffic standards.
-2.  RL Inference: Loads a trained Stable-Baselines3 PPO model and VecNormalize 
-    object to make real-time phase decisions (N/S or E/W) based on current vehicle queues.
-3.  Simulation & Input: Simulates vehicle arrivals via debounced button presses 
-    and vehicle clearance based on the active light phase.
-4.  Data Logging: Utilizes the `DataLogger` class to record all key metrics 
-    (queue lengths, phase decisions, cleared vehicles, inference times) throughout 
-    the deployment.
-5.  Reporting: Generates and saves a detailed CSV log, a performance visualization 
-    plot, summary statistics (JSON), and a human-readable text report upon completion 
-    or interruption.
-
-The primary execution is managed by the `main()` function, which initializes the 
-logger and controller, runs a time-limited demonstration mode, and finalizes 
-reporting and GPIO cleanup.
-"""
-
 import RPi.GPIO as GPIO
 import time
 import numpy as np
@@ -722,27 +695,39 @@ def main():
     
     print("[SETUP] Model files found. Auto-Logging ON.")
     
-    # Mode selection
+    # Mode selection with validation
     print("[SELECT MODE]")
     print("  1. Demo Mode (60s)")
     print("  2. Extended Demo (120s)")
     print("  3. Quick Test (30s)")
-    print("  4. Comparison (Fixed vs PPO)\n")
+    print("  4. Comparison (Fixed vs PPO)")
+    print("  q. Quit\n")
     
-    try:
-        mode = input("Enter mode (1-4): ").strip()
+    while True:
+        mode = input("Enter mode (1-4) or 'q' to quit: ").strip().lower()
         
-        if mode == '4':
-            # Comparison mode
-            duration = 60
-            print(f"\n* Starting comparison demo ({duration}s each)...\n")
-            run_comparison_demo(MODEL_PATH, VECNORM_PATH, duration)
-            return
-        else:
-            durations = {'1': 60, '2': 120, '3': 30}
-            duration = durations.get(mode, 60)
-    except:
+        # Allow exit
+        if mode in ['q', 'quit', 'exit', '']:
+            print("[EXIT] Session ended by user")
+            sys.exit(0)
+        
+        # Validate input
+        if mode not in ['1', '2', '3', '4']:
+            print(f"[ERROR] Invalid input '{mode}'. Please enter 1, 2, 3, 4, or 'q' to quit.\n")
+            continue
+        
+        # Valid input - break the loop
+        break
+    
+    if mode == '4':
+        # Comparison mode
         duration = 60
+        print(f"\n* Starting comparison demo ({duration}s each)...\n")
+        run_comparison_demo(MODEL_PATH, VECNORM_PATH, duration)
+        return
+    else:
+        durations = {'1': 60, '2': 120, '3': 30}
+        duration = durations[mode]
     
     print(f"\n* Starting {duration}-second deployment...\n")
     
