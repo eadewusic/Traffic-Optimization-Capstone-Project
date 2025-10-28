@@ -1,0 +1,27 @@
+{
+  "run": "run_8",
+  "seed": 456,
+  "timestamp": "2025-10-28T09:05:46.354328",
+  "training_statistics": {
+    "initial_reward": 1969.8893715999998,
+    "best_reward": 2074.6505019999995,
+    "final_reward": 2029.9351296,
+    "best_step": 150000,
+    "improvement": 104.76113039999973
+  },
+  "hyperparameters": {
+    "learning_rate": 0.0003,
+    "n_steps": 2048,
+    "batch_size": 64,
+    "n_epochs": 10,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01
+  },
+  "environment": {
+    "name": "Run7TrafficEnv",
+    "max_queue_length": 20,
+    "cars_cleared_per_cycle": 5
+  }
+}
