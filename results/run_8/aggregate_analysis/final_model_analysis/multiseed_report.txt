@@ -40,37 +40,37 @@ Location: models/hardware_ppo/run_8/seed_789/ppo_final_seed789.zip
 
 ======================================================================
 
-## ** FINAL MODEL ANALYSIS SUMMARY**
+FINAL MODEL ANALYSIS SUMMARY
 
-### **Performance Results:**
+Performance Results:
 
-| Seed | Final Reward | Rank |
-|------|--------------|------|
-| 789  | **2066.3**   | 1st |
+| Seed | Final Reward | Rank|
+|------|--------------|-----|
+| 789  | 2066.3       | 1st |
 | 1000 | 2049.5       | 2nd |
 | 123  | 2042.2       | 3rd |
 | 456  | 2029.9       | 4th |
 | 42   | 1987.7       | 5th |
 
-### **Statistical Summary:**
-- **Mean Final Reward**: 2035.12 ± 26.47
-- **Coefficient of Variation**: 1.3% (extremely low!)
-- **Range**: 1987.7 to 2066.3 (only 78.6 point spread)
-- **Best Model**: Seed 789
+Statistical Summary:
+- Mean Final Reward: 2035.12 ± 26.47
+- Coefficient of Variation: 1.3% (extremely low!)
+- Range: 1987.7 to 2066.3 (only 78.6 point spread)
+- Best Model: Seed 789
 
-## ** WHAT THIS MEANS FOR THESIS**
+WHAT THIS MEANS FOR THESIS
 
-### **1. Exceptional Reproducibility**
-- Standard deviation of only **±26.47** across 5 seeds
-- CV of **1.3%** is **publication-quality** consistency
+1. Exceptional Reproducibility
+- Standard deviation of only ±26.47 across 5 seeds
+- CV of 1.3% is publication-quality consistency
 - Proves approach works reliably, not by chance
 
-### **2. Robust Performance**
-- All seeds achieved **2000+ rewards**
-- All massively outperform baseline (-204.2) by **~2240 points**
+2. Robust Performance
+- All seeds achieved 2000+ rewards
+- All massively outperform baseline (-204.2) by ~2240 points
 - Consistent improvement across different initializations
 
-### **3. Clear Deployment Choice**
-- **Seed 789** is the champion model (2066.3 final reward)
+3. Clear Deployment Choice
+- Seed 789 is the champion model (2066.3 final reward)
 - Use: `models/hardware_ppo/run_8/seed_789/ppo_final_seed789.zip`
 - With: `models/hardware_ppo/run_8/seed_789/vec_normalize_seed789.pkl`
