@@ -147,7 +147,7 @@ def create_aggregate_visualization(results, stats, output_dir):
     # Plot 4: Distribution Box Plot
     ax4 = fig.add_subplot(gs[1, 2])
     data_to_plot = [stats['all_final_rewards'], stats['all_best_rewards']]
-    bp = ax4.boxplot(data_to_plot, labels=['Final', 'Best'], patch_artist=True)
+    bp = ax4.boxplot(data_to_plot, tick_labels=['Final', 'Best'], patch_artist=True)
     bp['boxes'][0].set_facecolor('lightblue')
     bp['boxes'][1].set_facecolor('lightgreen')
     ax4.set_ylabel('Reward')
@@ -256,7 +256,7 @@ def create_text_report(results, stats, output_dir):
         f.write("DEPLOYMENT\n")
         f.write("-"*70 + "\n\n")
         f.write(f"Best Model: Seed {best_seed}\n")
-        f.write(f"Location: models/hardware_ppo/run_8/seed_{best_seed}/best_model.zip\n\n")
+        f.write(f"Location: models/hardware_ppo/run_8/seed_{best_seed}/ppo_final_seed{best_seed}.zip\n\n")
         
         f.write("="*70 + "\n")
     
@@ -265,7 +265,6 @@ def create_text_report(results, stats, output_dir):
 
 
 def main():
-    print("="*70)
     print(" RUN 8: AGGREGATE MULTI-SEED RESULTS")
     print("="*70)
     
@@ -290,8 +289,8 @@ def main():
     
     stats = compute_statistics(results)
     
-    results_aggregate = results_run8_dir / 'aggregate_analysis'
-    viz_aggregate = viz_run8_dir / 'aggregate_analysis'
+    results_aggregate = results_run8_dir / 'aggregate_analysis' / 'final_model_analysis'
+    viz_aggregate = viz_run8_dir / 'aggregate_analysis' / 'final_model_analysis'
     
     results_aggregate.mkdir(parents=True, exist_ok=True)
     viz_aggregate.mkdir(parents=True, exist_ok=True)
