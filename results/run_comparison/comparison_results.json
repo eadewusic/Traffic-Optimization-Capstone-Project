@@ -1,0 +1,32 @@
+{
+  "analysis_date": "2025-10-28T12:29:44.914876",
+  "run7": {
+    "name": "Run 7",
+    "final_reward": 2041.4755439,
+    "best_reward": 2066.8789539,
+    "total_steps": 1502000,
+    "improvement": 363.5389085999998,
+    "final_std": 17.887782600686,
+    "ready_for_testing": true,
+    "training_efficiency": 1359.1714673102529
+  },
+  "run8_seed789": {
+    "name": "Run 8 Seed 789",
+    "final_reward": 2066.2724248,
+    "best_reward": 2066.2724248,
+    "total_steps": 1000000,
+    "improvement": 102.02257699999973,
+    "final_std": null,
+    "ready_for_testing": true,
+    "training_efficiency": 2066.2724248
+  },
+  "comparison": {
+    "winner": "Run 8 Seed 789",
+    "advantage": 24.796880899999906,
+    "advantage_pct": 1.214654810541025,
+    "is_significant": true,
+    "final_diff": 24.796880899999906,
+    "steps_saved": 502000
+  },
+  "recommendation": "Run 8 Seed 789"
+}
