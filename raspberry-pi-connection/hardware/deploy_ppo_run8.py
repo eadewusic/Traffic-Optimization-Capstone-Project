@@ -1,28 +1,42 @@
 """
 PPO-Based Traffic Light Controller Hardware Deployment Script
 
-This script manages the real-world deployment of a Proximal Policy Optimization (PPO) 
-Reinforcement Learning model to control a four-way traffic light intersection 
-using Raspberry Pi GPIO.
+This script deploys a trained Proximal Policy Optimization (PPO) reinforcement learning 
+model to control a four-way traffic intersection on a Raspberry Pi using real hardware.
 
-It handles:
-1.  Hardware Control: Initializes and manages GPIO pins for traffic LEDs (North, 
-    South, East, West) and button inputs for vehicle queue simulation, including 
-    implementing proper yellow light transitions as per traffic standards.
-2.  RL Inference: Loads a trained Stable-Baselines3 PPO model and VecNormalize 
-    object to make real-time phase decisions (N/S or E/W) based on current vehicle queues.
-3.  Simulation & Input: Simulates vehicle arrivals via debounced button presses 
-    and vehicle clearance based on the active light phase.
-4.  Data Logging: Utilizes the `DataLogger` class to record all key metrics 
-    (queue lengths, phase decisions, cleared vehicles, inference times) throughout 
-    the deployment.
-5.  Reporting: Generates and saves a detailed CSV log, a performance visualization 
-    plot, summary statistics (JSON), and a human-readable text report upon completion 
-    or interruption.
+Key Components:
 
-The primary execution is managed by the `main()` function, which initializes the 
-logger and controller, runs a time-limited demonstration mode, and finalizes 
-reporting and GPIO cleanup.
+Hardware Control:
+    - Manages 12 GPIO pins for traffic LEDs (3 per direction: red, yellow, green)
+    - Reads 4 button inputs (debounced) to simulate vehicle arrivals
+    - Implements safe yellow light transitions between phase changes
+
+RL Inference:
+    - Loads a trained Stable-Baselines3 PPO model with VecNormalize preprocessing
+    - Makes real-time phase decisions (North/South vs East/West green lights)
+    - Processes observations (normalized queue lengths) and outputs actions
+
+Traffic Simulation:
+    - Simulates vehicle queues (max 20 vehicles per lane)
+    - Clears vehicles from active lanes based on current green phase
+    - Tracks button presses and throughput metrics
+
+Data Logging & Analysis:
+    - Records step-by-step metrics: queue states, actions, cleared vehicles, inference times
+    - Generates comprehensive reports: CSV logs, visualizations, JSON statistics, text summaries
+    - Saves all data to timestamped folders for reproducibility
+
+Execution Modes:
+    - Demo mode: Runs PPO controller for specified duration (30s/60s/120s)
+    - Comparison mode: Runs fixed-timing baseline followed by PPO model for head-to-head testing
+    - Includes proper GPIO cleanup and error handling
+
+The main() function orchestrates initialization, execution, reporting, and cleanup.
+
+Model Context:
+    This script deploys "Run 8 Seed 789", a multi-seed validated champion model that 
+    demonstrated 72% win rate against baseline and statistically significant improvements 
+    (p=0.0002) in controlled testing.
 """
 
 import RPi.GPIO as GPIO
