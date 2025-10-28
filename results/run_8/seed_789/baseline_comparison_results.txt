@@ -1,0 +1,46 @@
+RUN 8 SEED 789 vs BASELINE COMPARISON
+======================================================================
+
+Run 8 Seed 789 Average: 546.1 ± 14.9
+Baseline Average: 541.4 ± 15.2
+Difference: +4.7 (+0.9%)
+Win Rate: 72%
+Statistical Test: t=1.089, p=0.2818
+Significance: not statistically significant (essentially tied)
+Verdict: MARGINAL_SUCCESS
+
+DETAILED TRIAL RESULTS
+----------------------------------------------------------------------
+YES Balanced     (seed   42): Run8= 550.7, Baseline= 541.4
+YES North Heavy  (seed   42): Run8= 542.0, Baseline= 539.2
+YES E-W Rush     (seed   42): Run8= 574.3, Baseline= 571.5
+NO Random       (seed   42): Run8= 542.8, Baseline= 558.4
+YES Blocked      (seed   42): Run8= 547.6, Baseline= 544.8
+YES Balanced     (seed  123): Run8= 542.2, Baseline= 534.7
+YES North Heavy  (seed  123): Run8= 528.5, Baseline= 521.0
+YES E-W Rush     (seed  123): Run8= 560.8, Baseline= 553.3
+NO Random       (seed  123): Run8= 524.0, Baseline= 527.7
+YES Blocked      (seed  123): Run8= 521.8, Baseline= 514.3
+YES Balanced     (seed  456): Run8= 558.0, Baseline= 543.4
+YES North Heavy  (seed  456): Run8= 544.3, Baseline= 529.7
+YES E-W Rush     (seed  456): Run8= 576.6, Baseline= 562.0
+YES Random       (seed  456): Run8= 539.8, Baseline= 523.8
+YES Blocked      (seed  456): Run8= 537.6, Baseline= 523.0
+NO Balanced     (seed  789): Run8= 546.6, Baseline= 546.6
+NO North Heavy  (seed  789): Run8= 532.3, Baseline= 532.3
+NO E-W Rush     (seed  789): Run8= 564.6, Baseline= 564.6
+NO Random       (seed  789): Run8= 533.2, Baseline= 551.6
+NO Blocked      (seed  789): Run8= 538.0, Baseline= 538.0
+YES Balanced     (seed 1234): Run8= 556.2, Baseline= 549.7
+YES North Heavy  (seed 1234): Run8= 542.5, Baseline= 536.0
+YES E-W Rush     (seed 1234): Run8= 574.8, Baseline= 568.3
+YES Random       (seed 1234): Run8= 538.0, Baseline= 530.1
+YES Blocked      (seed 1234): Run8= 535.8, Baseline= 529.3
+
+======================================================================
+CONTEXT: RUN 7 VS RUN 8 SEED 789
+======================================================================
+Previous comparison showed Run 8 Seed 789 > Run 7:
+  Final Reward: 2066.3 vs 2041.5 (+24.8 points)
+  Training: 1.0M vs 1.5M steps (33.4% more efficient)
+  Validation: Multi-seed proven (5 seeds)
