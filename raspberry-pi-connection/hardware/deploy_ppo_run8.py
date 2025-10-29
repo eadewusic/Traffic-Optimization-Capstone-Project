@@ -39,6 +39,7 @@ Model Context:
     (p=0.0002) in controlled testing.
 """
 
+
 import RPi.GPIO as GPIO
 import time
 import numpy as np
@@ -217,7 +218,7 @@ class DataLogger:
             f.write("="*70 + "\n")
             f.write(" TRAFFIC METRICS\n")
             f.write("="*70 + "\n")
-            f.write(f"\nTotal Vehicles Cleared: {stats['vehicles_cleared']}\n")
+            f.write(f"\nTotal Vehicles Cleared: {int(stats['vehicles_cleared'])}\n")
             f.write(f"Button Presses:\n")
             for direction, count in stats['button_presses'].items():
                 f.write(f"  {direction.capitalize():6s}: {count:3d}\n")
@@ -225,8 +226,8 @@ class DataLogger:
             f.write(f"  Total:  {total_presses:3d}\n")
             f.write(f"\nArrival Rate: {total_presses/stats['duration_seconds']:.3f} vehicles/second\n")
             if total_presses > 0:
-                f.write(f"Throughput: {stats['vehicles_cleared']/total_presses*100:.1f}% " 
-                        f"({stats['vehicles_cleared']}/{total_presses} cleared)\n")
+                f.write(f"Throughput: {int(stats['vehicles_cleared'])/total_presses*100:.1f}% " 
+                        f"({int(stats['vehicles_cleared'])}/{total_presses} cleared)\n")
             else:
                 f.write(f"Throughput: N/A (no button presses detected)\n")
             f.write(f"\nFinal Queue State:\n")
@@ -349,7 +350,7 @@ class HardwareController:
         # Timing
         self.min_green = 5
         self.max_green = 30
-        self.yellow_time = 3
+        self.yellow_time = 2
         
         # Debouncing
         self.last_button_time = {d: 0 for d in BUTTON_PINS.keys()}
@@ -359,8 +360,9 @@ class HardwareController:
         print("="*70 + "\n")
     
     def read_buttons(self):
-        """Read button states with debouncing"""
+        """Read button states with debouncing - returns list of pressed buttons"""
         current_time = time.time()
+        pressed_buttons = []
         
         for direction, pin in BUTTON_PINS.items():
             if GPIO.input(pin) == GPIO.LOW:
@@ -374,6 +376,9 @@ class HardwareController:
                     if self.queues[lane] < self.max_queue_length:
                         self.queues[lane] += 1
                         self.button_presses[direction] += 1
+                        pressed_buttons.append(direction.upper())
+        
+        return pressed_buttons
     
     def set_lights(self, phase, color='green'):
         """Control traffic lights"""
@@ -421,18 +426,18 @@ class HardwareController:
         if action == 0:  # N/S green
             for lane in [0, 1]:
                 if self.queues[lane] > 0:
-                    clear_amount = min(2, self.queues[lane])
+                    clear_amount = min(1, self.queues[lane])
                     self.queues[lane] -= clear_amount
                     cleared += clear_amount
         else:  # E/W green
             for lane in [2, 3]:
                 if self.queues[lane] > 0:
-                    clear_amount = min(2, self.queues[lane])
+                    clear_amount = min(1, self.queues[lane])
                     self.queues[lane] -= clear_amount
                     cleared += clear_amount
         
         self.vehicles_cleared += cleared
-        return cleared
+        return int(cleared)
     
     def get_action(self):
         """Get action from PPO model"""
@@ -447,10 +452,18 @@ class HardwareController:
     
     def run_demo_mode(self, duration=60):
         """Run demonstration mode for specified duration"""
-        print(f"\n STARTING {duration}-SECOND DEPLOYMENT")
-        print(f"   Model: Run 8 Seed 789 (Multi-Seed Champion)")
-        print(f"   Press buttons to simulate traffic")
-        print(f"   Press Ctrl+C to stop early\n")
+        print("="*70)
+        print("")
+        print(f"## DEMO MODE - {duration} SECONDS DEMONSTRATION")
+        print("")
+        print("* Press buttons to simulate vehicle arrivals.")
+        print("* Watch LEDs for transitions: GREEN -> YELLOW (2s) -> RED")
+        print("* Press Ctrl+C to stop.")
+        print("")
+        print("="*70)
+        print(">> TRAFFIC LOG")
+        print("="*70)
+        print("")
         
         start_time = time.time()
         step = 0
@@ -462,8 +475,14 @@ class HardwareController:
             while time.time() - start_time < duration:
                 step += 1
                 
-                # Read buttons
-                self.read_buttons()
+                # Read buttons and capture presses
+                pressed = self.read_buttons()
+                
+                # Display button presses
+                if pressed:
+                    for button_dir in pressed:
+                        queues_display = f"[N={int(self.queues[0])} S={int(self.queues[1])} E={int(self.queues[2])} W={int(self.queues[3])}]"
+                        print(f"\n*** {button_dir} BUTTON PRESSED = CAR ARRIVAL = Queue: {queues_display} ***")
                 
                 # Get PPO decision
                 action, inference_ms = self.get_action()
@@ -490,17 +509,20 @@ class HardwareController:
                 self.logger.log_step(step, self.queues.copy(), action, cleared, 
                                    inference_ms, phase_change)
                 
-                # Status update every 10 steps
-                if step % 10 == 0:
-                    elapsed = time.time() - start_time
-                    remaining = duration - elapsed
-                    print(f"[{elapsed:5.1f}s] Step {step:3d} | "
-                          f"Queues: {self.queues.astype(int)} | "
-                          f"Phase: {'N/S' if action == 0 else 'E/W':3s} | "
-                          f"Cleared: {self.vehicles_cleared:3d} | "
-                          f"Time Left: {remaining:5.1f}s")
+                # Display step info (detailed format)
+                phase_name = "North/South" if action == 0 else "East/West"
                 
-                time.sleep(0.5)
+                if phase_change:
+                    print(f"[STEP {step}] PPO ACTION: Switch to GREEN {phase_name}")
+                else:
+                    print(f"[STEP {step}] Green Light: {phase_name}")
+                
+                print(f"    - Cars Cleared: {cleared} car(s) (Total: {int(self.vehicles_cleared)})")
+                print(f"    - Cars Waiting: N={int(self.queues[0])}, S={int(self.queues[1])}, E={int(self.queues[2])}, W={int(self.queues[3])}")
+                print(f"    - Inference: {inference_ms:.2f}ms")
+                print("")
+                
+                time.sleep(2)
         
         except KeyboardInterrupt:
             print("\n Deployment stopped by user")
@@ -511,6 +533,26 @@ class HardwareController:
                 GPIO.output(LED_PINS[f'{direction}_red'], GPIO.HIGH)
                 GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
                 GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.LOW)
+        
+        # Print final summary
+        elapsed = time.time() - start_time
+        total_arrivals = sum(self.button_presses.values())
+        
+        print("="*70)
+        print(f">> DEPLOYMENT RESULTS (Duration: {elapsed:.1f}s | {step} steps)")
+        print("="*70)
+        print("")
+        print("Traffic Metrics:")
+        print(f"- Total cars cleared: {int(self.vehicles_cleared)} out of {total_arrivals} ({int(self.vehicles_cleared)/max(total_arrivals,1)*100:.1f}%)")
+        print(f"- Button presses: N={self.button_presses['north']}, S={self.button_presses['south']}, E={self.button_presses['east']}, W={self.button_presses['west']}")
+        print(f"- Final queues: N={int(self.queues[0])}, S={int(self.queues[1])}, E={int(self.queues[2])}, W={int(self.queues[3])} (Only {int(sum(self.queues))} cars still waiting)")
+        print("")
+        print("Control Metrics:")
+        print(f"- Phase changes: {self.phase_changes}")
+        print(f"- Yellow transitions: {self.yellow_transitions}")
+        avg_phase = elapsed / max(self.phase_changes, 1)
+        print(f"- Avg phase duration: {avg_phase:.2f}s")
+        print("")
         
         # Compute statistics
         stats = {
@@ -523,9 +565,9 @@ class HardwareController:
                 'baseline_win_rate': '72%',
                 'statistical_significance': 'p=0.0002'
             },
-            'duration_seconds': time.time() - start_time,
+            'duration_seconds': elapsed,
             'total_steps': step,
-            'vehicles_cleared': self.vehicles_cleared,
+            'vehicles_cleared': int(self.vehicles_cleared),
             'button_presses': self.button_presses,
             'final_queues': self.queues.tolist(),
             'phase_changes': self.phase_changes,
@@ -541,6 +583,14 @@ class HardwareController:
                 'p99_ms': np.percentile([d['inference_ms'] for d in self.logger.data], 99)
             }
         }
+        
+        print("Performance Metrics:")
+        print(f"- Mean/Avg inference: {stats['inference_times']['mean_ms']:.2f}ms")
+        print(f"- Max inference: {stats['inference_times']['max_ms']:.2f}ms")
+        print(f"- Min inference: {stats['inference_times']['min_ms']:.2f}ms")
+        print(f"- Std inference: {stats['inference_times']['std_ms']:.2f}ms")
+        print(f"- Real-time: {'YES' if stats['inference_times']['max_ms'] < 100 else 'NO'}")
+        print("")
         
         return stats
     
@@ -581,7 +631,7 @@ class FixedTimingController:
         self.yellow_duration_total = 0
         
         self.fixed_green_time = 10  # seconds
-        self.yellow_time = 3
+        self.yellow_time = 2
         
         self.last_button_time = {d: 0 for d in BUTTON_PINS.keys()}
         self.debounce_delay = 0.3
@@ -591,6 +641,7 @@ class FixedTimingController:
     def read_buttons(self):
         """Read button states with debouncing"""
         current_time = time.time()
+        pressed_buttons = []
         
         for direction, pin in BUTTON_PINS.items():
             if GPIO.input(pin) == GPIO.LOW:
@@ -603,6 +654,9 @@ class FixedTimingController:
                     if self.queues[lane] < self.max_queue_length:
                         self.queues[lane] += 1
                         self.button_presses[direction] += 1
+                        pressed_buttons.append(direction.upper())
+        
+        return pressed_buttons
     
     def set_lights(self, phase, color='green'):
         """Control traffic lights"""
@@ -649,24 +703,33 @@ class FixedTimingController:
         if action == 0:
             for lane in [0, 1]:
                 if self.queues[lane] > 0:
-                    clear_amount = min(2, self.queues[lane])
+                    clear_amount = min(1, self.queues[lane])
                     self.queues[lane] -= clear_amount
                     cleared += clear_amount
         else:
             for lane in [2, 3]:
                 if self.queues[lane] > 0:
-                    clear_amount = min(2, self.queues[lane])
+                    clear_amount = min(1, self.queues[lane])
                     self.queues[lane] -= clear_amount
                     cleared += clear_amount
         
         self.vehicles_cleared += cleared
-        return cleared
+        return int(cleared)
     
     def run_demo_mode(self, duration=60):
         """Run fixed-timing demonstration"""
-        print(f"\n STARTING {duration}-SECOND FIXED-TIMING TEST")
-        print(f"   Mode: Fixed 10-second cycles")
-        print(f"   Press buttons to simulate traffic\n")
+        print("="*70)
+        print("")
+        print(f"## FIXED-TIMING MODE - {duration} SECONDS")
+        print("")
+        print("* Fixed 10-second green cycles")
+        print("* Press buttons to simulate vehicle arrivals")
+        print("* Press Ctrl+C to stop")
+        print("")
+        print("="*70)
+        print(">> TRAFFIC LOG")
+        print("="*70)
+        print("")
         
         start_time = time.time()
         step = 0
@@ -678,7 +741,12 @@ class FixedTimingController:
             while time.time() - start_time < duration:
                 step += 1
                 
-                self.read_buttons()
+                pressed = self.read_buttons()
+                
+                if pressed:
+                    for button_dir in pressed:
+                        queues_display = f"[N={int(self.queues[0])} S={int(self.queues[1])} E={int(self.queues[2])} W={int(self.queues[3])}]"
+                        print(f"\n*** {button_dir} BUTTON PRESSED = CAR ARRIVAL = Queue: {queues_display} ***")
                 
                 # Check if it's time to switch
                 phase_change = False
@@ -701,16 +769,18 @@ class FixedTimingController:
                 self.logger.log_step(step, self.queues.copy(), self.current_phase, 
                                    cleared, 0, phase_change)
                 
-                if step % 10 == 0:
-                    elapsed = time.time() - start_time
-                    remaining = duration - elapsed
-                    print(f"[{elapsed:5.1f}s] Step {step:3d} | "
-                          f"Queues: {self.queues.astype(int)} | "
-                          f"Phase: {'N/S' if self.current_phase == 0 else 'E/W':3s} | "
-                          f"Cleared: {self.vehicles_cleared:3d} | "
-                          f"Time Left: {remaining:5.1f}s")
+                phase_name = "North/South" if self.current_phase == 0 else "East/West"
                 
-                time.sleep(0.5)
+                if phase_change:
+                    print(f"[STEP {step}] FIXED-TIMING: Switch to GREEN {phase_name}")
+                else:
+                    print(f"[STEP {step}] Green Light: {phase_name}")
+                
+                print(f"    - Cars Cleared: {cleared} car(s) (Total: {int(self.vehicles_cleared)})")
+                print(f"    - Cars Waiting: N={int(self.queues[0])}, S={int(self.queues[1])}, E={int(self.queues[2])}, W={int(self.queues[3])}")
+                print("")
+                
+                time.sleep(2)
         
         except KeyboardInterrupt:
             print("\n Test stopped by user")
@@ -721,12 +791,31 @@ class FixedTimingController:
                 GPIO.output(LED_PINS[f'{direction}_green'], GPIO.LOW)
                 GPIO.output(LED_PINS[f'{direction}_yellow'], GPIO.LOW)
         
+        elapsed = time.time() - start_time
+        total_arrivals = sum(self.button_presses.values())
+        
+        print("="*70)
+        print(f">> DEPLOYMENT RESULTS (Duration: {elapsed:.1f}s | {step} steps)")
+        print("="*70)
+        print("")
+        print("Traffic Metrics:")
+        print(f"- Total cars cleared: {int(self.vehicles_cleared)} out of {total_arrivals} ({int(self.vehicles_cleared)/max(total_arrivals,1)*100:.1f}%)")
+        print(f"- Button presses: N={self.button_presses['north']}, S={self.button_presses['south']}, E={self.button_presses['east']}, W={self.button_presses['west']}")
+        print(f"- Final queues: N={int(self.queues[0])}, S={int(self.queues[1])}, E={int(self.queues[2])}, W={int(self.queues[3])}")
+        print("")
+        print("Control Metrics:")
+        print(f"- Phase changes: {self.phase_changes}")
+        print(f"- Yellow transitions: {self.yellow_transitions}")
+        avg_phase = elapsed / max(self.phase_changes, 1)
+        print(f"- Avg phase duration: {avg_phase:.2f}s")
+        print("")
+        
         stats = {
             'timestamp': datetime.now().isoformat(),
             'controller': 'Fixed-Timing-Baseline',
-            'duration_seconds': time.time() - start_time,
+            'duration_seconds': elapsed,
             'total_steps': step,
-            'vehicles_cleared': self.vehicles_cleared,
+            'vehicles_cleared': int(self.vehicles_cleared),
             'button_presses': self.button_presses,
             'final_queues': self.queues.tolist(),
             'phase_changes': self.phase_changes,
@@ -953,7 +1042,8 @@ def main():
         stats = controller.run_demo_mode(duration=duration)
         
         # Save everything
-        print("\n[LOGGING] All data saved:")
+        print("\n")
+        print("[LOGGING] All data saved:")
         df = logger.save_csv()
         logger.create_visualization(df)
         logger.save_statistics(stats)
@@ -964,10 +1054,6 @@ def main():
         print(f"    - Stats: {logger.json_path}")
         print(f"    - Plot: {logger.viz_path}")
         print(f"    - Output: {terminal_log_path}")
-        
-        print("\n" + "="*70)
-        print("RUN 8 SEED 789 DEPLOYMENT COMPLETE")
-        print(" Multi-Seed Champion Model Successfully Deployed")
         
         # Restore stdout/stderr
         sys.stdout = original_stdout
