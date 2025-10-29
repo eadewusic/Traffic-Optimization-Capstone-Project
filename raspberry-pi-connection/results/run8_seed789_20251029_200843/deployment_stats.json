@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-10-29T20:10:46.037899",
+  "controller": "PPO-Run8-Seed789",
+  "model_info": {
+    "run": "Run 8",
+    "seed": 789,
+    "validation": "Multi-seed champion (best of 5)",
+    "baseline_win_rate": "72%",
+    "statistical_significance": "p=0.0002"
+  },
+  "duration_seconds": 120.42923164367676,
+  "total_steps": 54,
+  "vehicles_cleared": 15,
+  "button_presses": {
+    "north": 7,
+    "south": 3,
+    "east": 3,
+    "west": 3
+  },
+  "final_queues": [
+    0.0,
+    0.0,
+    1.0,
+    0.0
+  ],
+  "phase_changes": 6,
+  "yellow_transitions": 6,
+  "yellow_duration_seconds": 12,
+  "inference_times": {
+    "mean_ms": 5.977705777847102,
+    "std_ms": 1.1351621870621011,
+    "min_ms": 2.698756000427238,
+    "max_ms": 10.258166999847163,
+    "median_ms": 5.74120649980614,
+    "p95_ms": 8.180655450087208,
+    "p99_ms": 10.170283990128155
+  }
+}
