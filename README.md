@@ -5,7 +5,7 @@ This project deploys a trained PPO reinforcement learning agent on Raspberry Pi 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Stable-Baselines3](https://img.shields.io/badge/SB3-PPO-green.svg)](https://stable-baselines3.readthedocs.io/)
 [![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi%204%20Model%20B%202GB-red.svg)](https://www.raspberrypi.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ---
 
@@ -1495,11 +1495,11 @@ The results speak for themselves: **PPO-based adaptive traffic control is not ju
 
 ---
 
-## 📜 License & Attribution
+## License & Attribution
 
 ### **License**
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache 2.0 License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
