@@ -101,7 +101,7 @@ Implement a **Deep Reinforcement Learning agent** that:
 
 | Resource | Link | Description |
 |----------|------|-------------|
-| **GitHub Repository** | [github.com/yourusername/traffic-optimization](https://github.com/eadewusic/Traffic-Optimization-Capstone-Project) | Complete source code |
+| **GitHub Repository** | [GitHub](https://github.com/eadewusic/Traffic-Optimization-Capstone-Project) | Complete source code |
 | **Trained Models (Run 8)** | [Google Drive - Models](https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link) | All 5 seed models (100MB each) |
 | **Training Data & Logs** | [Google Drive - Data](https://drive.google.com/drive/folders/1Q8K8wo0kLMLhonOluAwU3bSakkX6rm7T?usp=drive_link) | Raw training data and logs |
 
