@@ -45,8 +45,6 @@ Implement a **Deep Reinforcement Learning agent** that:
 4. Deploys on low-cost hardware (Raspberry Pi 4)
 5. Reduces average waiting time by **60.8%** compared to fixed-timing
 
----
-
 ## Key Features & Achievements
 
 ### RL Agent Training Phases
@@ -92,11 +90,7 @@ Implement a **Deep Reinforcement Learning agent** that:
 - **Real-World Focus:** Hardware validation with LED traffic lights  
 - **Reproducibility:** Complete installation, training, and deployment guides  
 
----
-
-## Demo & Links
-
-### **Demo Video**
+### Demo Video
 
 > **Watch the full system demonstration:**  
 > **[Project Demo Video](https://drive.google.com/drive/folders/1qrGOvRicvj90Pvv2kZNsHaj0y3hPftWn?usp=sharing)**  
@@ -108,15 +102,13 @@ Implement a **Deep Reinforcement Learning agent** that:
 - Performance comparison: Fixed-Timing vs PPO
 - Terminal workflows and commands
 
-### **Project Links**
+### Project Links
 
 | Resource | Link | Description |
 |----------|------|-------------|
 | **GitHub Repository** | [GitHub](https://github.com/eadewusic/Traffic-Optimization-Capstone-Project) | Complete source code |
 | **Trained Models (Run 8)** | [Google Drive - Models](https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link) | All 5 seed models (100MB each) |
 | **Training Data & Logs** | [Google Drive - Data](https://drive.google.com/drive/folders/1Q8K8wo0kLMLhonOluAwU3bSakkX6rm7T?usp=drive_link) | Raw training data and logs |
-
----
 
 ## Complete Training Evolution (Runs 1-8)
 
@@ -474,8 +466,6 @@ Champion Model:   Seed 789 (highest final reward)
 
 **Lesson Learned:** Multi-seed validation proves the approach is robust, reproducible, and statistically significant. Seed 789 champion model ready for production deployment with high confidence.
 
----
-
 ## Comprehensive Analysis Tables
 
 ### Table 1: Complete Run Comparison (Runs 1-8)
@@ -747,8 +737,6 @@ Mean ± Std: 2025.3 ± 4.7
 - Most consistent across test scenarios
 - Deployed to hardware for validation
 
----
-
 ## Statistical Testing
 
 ### Baseline Comparison (Champion Model)
@@ -774,8 +762,6 @@ Significance Level:  α = 0.05
 - **Win Rate**: 72% (18/25 scenarios favor Run 8)
 
 **Interpretation**: Strong statistical evidence that Run 8 Champion outperforms traditional fixed-timing control.
-
----
 
 ## Hardware Deployment
 
@@ -916,8 +902,6 @@ See Table 8 above for detailed metrics.
 - Stability: 1.14ms std dev (highly consistent)
 - Efficiency: 2.0 cars/switch (233% better than fixed-timing)
 - Adaptive control: Confirmed through variable phase durations
-
----
 
 ## Installation & Setup
 
@@ -1062,8 +1046,6 @@ python test_run8seed789_vs_baseline.py
 cd evaluation
 python run8seed789_ppo_evaluation.py --seed 789
 ```
-
----
 
 ### **Hardware Deployment**
 
@@ -1213,8 +1195,6 @@ Demo finished
 └────────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## Tech Stack/ Specifcations
 
 ### Tech Stack
@@ -1279,8 +1259,6 @@ Demo finished
 - MUTCD standard compliance
 - Emergency GPIO cleanup on termination
 - Graceful shutdown procedures
-
----
 
 ## Key Contributions
 
@@ -1354,13 +1332,11 @@ Demo finished
 - Prevents overfitting, improves generalization
 - Faster training, lower computational cost
 
----
-
 ## Data Analysis & Performance Metrics
 
 ### Training Data Analysis
 
-#### Environment Specification
+### Environment Specification
 
 **Custom Traffic Simulation Environment:** `Run7TrafficEnv`
 
@@ -1396,7 +1372,7 @@ where:
 | **Mean Total** | **3.12** | **0.61** | - | - | vehicles (PPO) |
 | **Baseline Total** | **3.42** | **0.67** | - | - | vehicles (Fixed) |
 
-#### Reward Function
+### Reward Function
 
 **Type:** Comparative Reward Function
 
@@ -1418,7 +1394,7 @@ where:
 - Efficiency bonus for fewer phase changes relative to baseline
 - No collision penalties (intersection model prevents conflicts)
 
-#### Training Progression (Run 8, Multi-Seed)
+### Training Progression (Run 8, Multi-Seed)
 
 **Training Configuration:**
 - Total timesteps: 1,000,000 per seed
@@ -1457,7 +1433,7 @@ All seeds exhibited similar learning curve:
 
 **Key Training Insight:** Convergence occurred around 600K steps (60% through training), with remaining 400K steps providing fine-tuning and stability validation. This suggests 1M steps is sufficient for reliable convergence in this environment.
 
-#### Policy Behavior Analysis
+### Policy Behavior Analysis
 
 **State Normalization:**
 
@@ -1499,7 +1475,7 @@ This 233% improvement represents better utilization of green time by adapting to
 
 ### Performance Metrics Calculations
 
-#### Statistical Validation Methodology
+### Statistical Validation Methodology
 
 **Test Design:**
 - Method: Wilcoxon signed-rank test (paired, non-parametric)
@@ -1514,7 +1490,7 @@ This 233% improvement represents better utilization of green time by adapting to
 3. Robust to outliers and small sample sizes
 4. Appropriate for comparing central tendencies
 
-#### Mean Delay Analysis
+### Mean Delay Analysis
 
 **Definition:** Average time vehicles spend waiting at the intersection before proceeding through.
 
@@ -1563,7 +1539,7 @@ PPO delay distribution:
 Overlap: 68% of distributions overlap, but PPO consistently lower
 ```
 
-#### Queue Length Analysis
+### Queue Length Analysis
 
 **Definition:** Average number of vehicles waiting in queue across all four directions.
 
@@ -1605,7 +1581,7 @@ improvement = 8.8%
 
 PPO provides balanced improvement across all directions, not favoring any particular approach.
 
-#### Reward Metric Analysis
+### Reward Metric Analysis
 
 **Definition:** Episode reward as calculated by the comparative reward function (agent performance relative to baseline).
 
@@ -1637,7 +1613,7 @@ The p-value of 0.0002 indicates extremely strong evidence that PPO consistently 
 
 This is analogous to a clinical trial showing a drug consistently works slightly better across many patients—small effect but high confidence.
 
-#### Throughput Analysis
+### Throughput Analysis
 
 **Definition:** Percentage of maximum possible vehicles that successfully clear the intersection.
 
@@ -1691,7 +1667,7 @@ Improvement: (2.0 - 0.6) / 0.6 = 233%
 
 This is a measure of how effectively each phase change is utilized, not total system throughput.
 
-#### Win Rate Analysis
+### Win Rate Analysis
 
 **Definition:** Percentage of scenarios where PPO achieves better reward than baseline.
 
@@ -1720,7 +1696,7 @@ Win Rate: 18/25 = 72%
 - Weaker but still competitive in extreme congestion (50%)
 - Consistent advantage across most traffic patterns
 
-#### Reproducibility Analysis (Multi-Seed Validation)
+### Reproducibility Analysis (Multi-Seed Validation)
 
 **Definition:** Consistency of results across independent training runs with different random initializations.
 
@@ -1761,7 +1737,7 @@ CV_overall = 1.3% (across all variation sources)
 
 All seeds within ±2% of mean, demonstrating tight clustering.
 
-#### Hardware Performance Analysis
+### Hardware Performance Analysis
 
 **Platform:** Raspberry Pi 4 Model B (2GB RAM)
 
@@ -1836,7 +1812,7 @@ System has significant headroom for additional features (e.g., camera integratio
 
 ### Statistical Summary
 
-#### Hypothesis Testing Results
+### Hypothesis Testing Results
 
 **Research Hypothesis:** "PPO-based adaptive traffic control outperforms traditional fixed-timing control."
 
@@ -1853,7 +1829,7 @@ System has significant headroom for additional features (e.g., camera integratio
 
 **Overall Conclusion:** Strong statistical evidence (p<0.05 for 3/4 metrics) supports the hypothesis that PPO outperforms fixed-timing control in delay reduction, queue management, and overall reward, with similar throughput.
 
-#### Effect Size & Practical Significance
+### Effect Size & Practical Significance
 
 While statistical significance indicates results are unlikely due to chance, effect size indicates practical importance:
 
@@ -1874,7 +1850,7 @@ While delay and queue improvements are modest (8-9%), they are:
 
 The 233% control efficiency improvement is the most dramatic effect, indicating PPO makes far better use of each green phase by adapting to actual traffic conditions.
 
-#### Reproducibility Validation
+### Reproducibility Validation
 
 **Multi-Seed Test Results:**
 
@@ -1888,7 +1864,7 @@ All seeds within: ±2.0% of mean
 
 **Assessment:** Excellent reproducibility (CV<5% standard met with margin). Result is robust to random initialization and can be reliably reproduced.
 
-#### Computational Efficiency
+### Computational Efficiency
 
 **Training Efficiency:**
 
@@ -1907,7 +1883,79 @@ All seeds within: ±2.0% of mean
 | CPU Usage | 15-20% | <80% | Low |
 | Memory Usage | 450 MB | <1.5 GB | Low |
 
----
+### Comparative Performance (PPO vs Fixed-Timing)
+
+**Statistical Validation: Wilcoxon Signed-Rank Test (25 Scenarios)**
+
+This analysis compares the champion PPO model (Run 8 Seed 789) against a realistic fixed-timing baseline controller across 25 diverse traffic scenarios using paired, non-parametric statistical testing.
+
+**Summary Table:**
+
+| Metric | Fixed-Timing | PPO (Run 8) | Absolute Diff | Relative Change | p-value | Significance |
+|--------|--------------|-------------|---------------|----------------|---------|--------------|
+| **Mean Delay (s)** | 7.89 ± 0.91 | 7.19 ± 0.84 | -0.70s | **↓ 8.9%** | 0.018 | * Sig |
+| **Mean Queue (cars)** | 3.42 ± 0.67 | 3.12 ± 0.61 | -0.30 | **↓ 8.8%** | 0.025 | * Sig |
+| **Mean Reward** | 2073.8 ± 11.9 | 2078.5 ± 12.3 | +4.7 | **↑ 0.2%** | 0.0002 | *** Highly Sig |
+| **Throughput (%)** | 96.8 ± 1.3 | 97.1 ± 1.2 | +0.3pp | ↑ 0.3pp | 0.234 | ns Not Sig |
+| **Win Rate** | 28% (7/25) | **72% (18/25)** | +44pp | - | - | Dominant |
+| **Cars/Switch** | 0.6 | 2.0 | +1.4 | **↑ 233%** | - | Control Efficiency |
+
+*Significance levels: * p<0.05, ** p<0.01, *** p<0.001, ns = not significant, pp = percentage points*
+
+## Run 8 Seeds Comparison (Champion Seed 789 vs Other Seeds)
+
+**Selection Criteria:**
+
+| Criterion | Seed 42 | Seed 123 | Seed 456 | Seed 789 | Seed 1000 | Winner |
+|-----------|---------|----------|----------|-------------|-----------|--------|
+| Final Reward | 1,987.7 | 2,042.2 | 2,029.9 | **2,066.3** | ~2,010 | 789 |
+| Best Reward | ~2,000 | ~2,100 | 2,074.7 | **2,066.3** | ~2,050 | 789 |
+| Training Stability | Good | Good | Good | **Excellent** | Good | 789 |
+| Convergence Speed | ~600K | ~550K | ~580K | ~600K | ~620K | 123 |
+| Resource Efficiency | 1h 37m | 0h 37m | 0h 33m | **0h 34m** | 0h 35m | 456 |
+
+**Champion Selection Rationale:**
+
+Seed 789 selected because:
+1. Highest final reward (2,066.3) - primary criterion
+2. Matched best reward (2,066.3 = 2,066.3) - no degradation
+3. Excellent training stability - smooth convergence
+4. Fast training (34 minutes) - near-optimal efficiency
+
+While Seed 123 converged faster and Seed 456 trained faster, Seed 789 achieved the highest final performance, which is most important for deployment.
+
+### Champion Seed 789 vs Mean Performance
+
+How much better is the champion vs average seed?
+
+```python
+Champion (Seed 789): 2,066.3
+Mean (All Seeds): 2,025.3
+Difference: +41.0 points (+2.0%)
+
+Interpretation:
+- Champion is 2.0% better than mean
+- Still within ±2% range (excellent consistency)
+- Choosing champion vs random seed: +2% expected advantage
+```
+
+Any seed would perform well (all within ±2%), but champion seed 789 provides small additional edge (2%).
+
+### Worst Seed (42) Analysis
+
+```
+Seed 42 Result: 1,987.7 (lowest)
+Deviation from mean: -1.9%
+Still acceptable? Yes (within ±2%)
+
+Possible reasons:
+1. Random initialization slightly suboptimal
+2. Converged to local optimum (not global)
+3. Training variance (stochastic environment)
+4. No fundamental flaw - just normal variation
+```
+
+Even "worst" seed (42) achieved 98.1% of champion performance. This demonstrates training is robust - no catastrophic failures across different initializations.
 
 ## Deployment Plan
 
@@ -1916,185 +1964,6 @@ The deployment strategy follows a three-phase approach to integrate a statistica
 Phase 2 successfully deployed the validated model on a Raspberry Pi 4 (2GB RAM) hardware platform costing Fr141,700 (~$108 USD), achieving a critical milestone of real-time inference in just 5.78ms mean time with 17× safety margin under the 100ms real-time threshold. The complete hardware prototype integrates 12 LEDs for traffic signal visualization and 4 push buttons for simulating vehicle arrivals, with the deployment script (deploy_ppo_run8_seed789.py) providing comprehensive data logging, LED control through GPIO pins, and comparison modes for validation against fixed-timing baselines. Hardware testing confirmed adaptive behavior with 233% better control efficiency (2.0 versus 0.6 cars cleared per phase change) and sustained stable performance with only 1.14ms standard deviation in inference time.
 
 Phase 3 focused on extended validation and long-term stability testing to confirm deployment readiness beyond the current 60-second validation tests. The evaluation protocol included progressive stress testing from 5-minute runs through 24-hour continuous operation, monitoring key metrics including inference latency consistency, CPU thermal management (target below 70°C with cooling fan), memory stability to detect potential leaks, and system uptime targeting 99.9% reliability.
-
----
-
-## Performance Analysis
-
-### **1. Comparative Performance**
-
-#### **PPO vs Fixed-Timing (Primary Comparison)**
-
-**Summary Table:**
-
-| Metric | Fixed-Timing | PPO (Run 8) | Absolute Difference | Relative Improvement |
-|--------|--------------|-------------|---------------------|---------------------|
-| **Mean Waiting Time (s)** | 153.2 ± 8.6 | 60.0 ± 0.8 | -93.2 s | **↓ 60.8%** |
-| **Throughput (veh/h)** | 847.4 ± 47.2 | 2,820.2 ± 36.8 | +1,972.8 veh/h | **↑ 233%** |
-| **System Efficiency (s/veh)** | 5.53 ± 0.31 | 2.13 ± 0.03 | -3.40 s/veh | **↑ 159%** |
-
-**Statistical Significance:**
-- **Wilcoxon Test:** p = 0.0002 (highly significant)
-- **Effect Size:** Cohen's d = 10.84 (very large)
-- **Conclusion:** PPO is **statistically and practically superior**
-
-**Interpretation:**
-
-1. **Waiting Time Reduction (60.8%):**
-   - Average driver waits 93 seconds less
-   - Over 1 hour saved per day for a typical commuter (10 intersections)
-   - Significant impact on quality of life
-
-2. **Throughput Increase (233%):**
-   - Intersection handles 3.3× more vehicles
-   - Reduces congestion and spillover to adjacent roads
-   - Enables city growth without new infrastructure
-
-3. **Efficiency Improvement (159%):**
-   - Each vehicle spends 61% less time at intersection
-   - Fuel savings: ~$0.10 per vehicle (idling cost)
-   - Environmental: 60% reduction in CO₂ emissions at intersection
-
----
-
-#### **Run 7 vs Run 8 (Evolution Analysis)**
-
-**Key Improvements in Run 8:**
-
-| Aspect | Run 7 | Run 8 | Improvement |
-|--------|-------|-------|-------------|
-| **Waiting Time (s)** | 62.3 ± 1.2 | 60.0 ± 0.8 | ↓ 3.7% |
-| **Training Stability (CV)** | 1.9% | 1.3% | ↑ 32% |
-| **Reproducibility (Seeds)** | 1 | 5 | 5× validation |
-| **Inference Time (ms)** | 6.12 | 5.78 | ↓ 5.6% |
-
-**What Changed Between Runs:**
-
-1. **Reward Function Enhancement:**
-   - Added phase change penalty (discourages flickering)
-   - Tuned penalty weights for smoother operation
-
-2. **Architecture Improvements:**
-   - Maintained 64×64 hidden layers (good balance)
-   - Optimized activation functions
-
-3. **Training Enhancements:**
-   - Extended training: 400K → 500K timesteps
-   - Better hyperparameter tuning (learning rate, batch size)
-
-4. **Validation Methodology:**
-   - Single seed → 5 independent seeds
-   - Added statistical testing framework
-
-**Takeaway:** Run 8 represents a **more robust, validated, and efficient** implementation compared to Run 7.
-
----
-
-### **2. Sensitivity Analysis**
-
-#### **Impact of Traffic Demand**
-
-How does PPO performance vary with traffic intensity?
-
-**Test Setup:**
-- Varied vehicle arrival rate: μ = [2s, 3s, 5s, 7s, 10s]
-- Evaluated champion model (seed 789) on each scenario
-
-**Results:**
-
-| Traffic Demand | Arrival Rate (μ) | Vehicles/Episode | Waiting Time (s) | PPO vs Fixed |
-|----------------|-----------------|-----------------|-----------------|--------------|
-| High | 2s | ~1,800 | 285.3 ± 6.2 | ↓ 48.2% |
-| Medium-High | 3s | ~1,200 | 142.7 ± 3.5 | ↓ 52.1% |
-| **Normal** | **5s** | **~720** | **60.0 ± 0.8** | **↓ 60.8%** |
-| Medium-Low | 7s | ~514 | 28.3 ± 1.2 | ↓ 65.3% |
-| Low | 10s | ~360 | 12.5 ± 0.8 | ↓ 70.2% |
-
-**Analysis:**
-
-```
-Performance vs Traffic Demand:
-- Low Demand (μ=10s): PPO excels (70% improvement)
-  → Plenty of capacity, optimal scheduling easy
-  
-- Normal Demand (μ=5s): PPO optimal (61% improvement)
-  → Trained distribution, best performance
-  
-- High Demand (μ=2s): PPO helps but saturated (48% improvement)
-  → Intersection at capacity, limited room for optimization
-```
-
-**Generalization Curve:**
-
-```
-Improvement (%) = 85.3 - 0.37 × (vehicles/100)
-
-R² = 0.94 (excellent fit)
-```
-
-**Takeaway:** PPO provides **greatest benefit at normal to low traffic levels**. At saturation, even optimal control can't eliminate congestion (requires infrastructure expansion).
-
----
-
-#### **Impact of Episode Length**
-
-Does PPO maintain performance over longer simulations?
-
-**Test Setup:**
-- Episode lengths: [1,800s, 3,600s, 7,200s, 10,800s]
-- Evaluated seed 789 on each duration
-
-**Results:**
-
-| Episode Length | Duration (min) | Waiting Time (s) | Throughput (veh/h) | Consistency |
-|----------------|---------------|-----------------|-------------------|-------------|
-| Short | 30 min | 59.7 ± 0.9 | 2,832.5 ± 41.2 | Good |
-| **Normal** | **60 min** | **60.0 ± 0.8** | **2,820.2 ± 36.8** | **Optimal** |
-| Long | 120 min | 60.3 ± 0.7 | 2,814.7 ± 34.5 | Excellent |
-| Very Long | 180 min | 60.5 ± 0.6 | 2,808.3 ± 33.2 | Excellent |
-
-**Analysis:**
-
-- **Short Episodes (30 min):** Slight variability due to random initialization
-- **Normal Episodes (60 min):** Optimal balance (used in training)
-- **Long Episodes (120-180 min):** Consistent performance, no degradation
-
-**Takeaway:** PPO policy is **stable over extended periods** (hours), confirming robustness for real-world deployment.
-
----
-
-#### **Impact of Random Seed (Reproducibility)**
-
-How much does performance vary due to random initialization?
-
-**Inter-Seed Variability:**
-
-```
-Mean Waiting Time:
-- Seed 42:   60.2 ± 0.9 s
-- Seed 123:  60.5 ± 0.7 s
-- Seed 456:  59.8 ± 1.1 s
-- Seed 789:  60.0 ± 0.8 s
-- Seed 1024: 59.7 ± 0.6 s
-
-Overall: 60.0 ± 0.8 s
-Inter-seed range: 0.8 s (1.3%)
-```
-
-**Coefficient of Variation:**
-
-```
-CV = (σ_between_seeds / μ_overall) × 100
-CV = (0.28 / 60.0) × 100
-CV = 0.47% (inter-seed)
-
-Including within-seed variability:
-CV_total = 1.3% (excellent!)
-```
-
-**Takeaway:** PPO training is **highly reproducible**. Any of the 5 trained models would perform equivalently in deployment.
-
----
 
 ## Conclusion
 
