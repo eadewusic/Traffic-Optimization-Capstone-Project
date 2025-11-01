@@ -6,6 +6,7 @@ This project deploys a trained PPO reinforcement learning agent on Raspberry Pi 
 [![Stable-Baselines3](https://img.shields.io/badge/SB3-PPO-green.svg)](https://stable-baselines3.readthedocs.io/)
 [![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi%204%20Model%20B%202GB%20RAM-red.svg)](https://www.raspberrypi.org/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Firebase](https://img.shields.io/badge/Firebase-yellow.svg)](https://console.firebase.google.com/)
 
 ## Project Overview
 
@@ -879,14 +880,15 @@ Significance Level:  α = 0.05
 
 **Button Inputs** (4 buttons - vehicle arrivals):
 
-| Direction | GPIO | Pin | Pull | Debounce | Connection |
-|------------|--------|--------|-----------|----------- |
-| North | GPIO 9 | Pin 21 | DOWN | 300 ms | Button 1 |
-| East | GPIO 10 | Pin 19 | DOWN | 300 ms | Button 2 |
-| South | GPIO 22 | Pin 15 | DOWN | 300 ms | Button 3 |
-| West | GPIO 17 | Pin 11 | DOWN | 300 ms | Button 4 |
+| Direction | GPIO | Pin | Pull | Connection |
+|-----------|------|-----|------|------------|
+| North | GPIO 9 | Pin 21 | DOWN | Button 1 |
+| East | GPIO 10 | Pin 19 | DOWN | Button 2 |
+| South | GPIO 22 | Pin 15 | DOWN | Button 3 |
+| West | GPIO 17 | Pin 11 | DOWN | Button 4 |
 
 **Common Ground**: All buttons share GND (Pin 39) connected to Breadboard 1’s GND rail.
+All buttons have debounce value of 300ms
 
 **Cooling Fan (Raspberry Pi Case)**
 
