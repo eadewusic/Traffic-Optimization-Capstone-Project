@@ -6,7 +6,7 @@ This project deploys a trained PPO reinforcement learning agent on Raspberry Pi 
 [![Stable-Baselines3](https://img.shields.io/badge/SB3-PPO-green.svg)](https://stable-baselines3.readthedocs.io/)
 [![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi%204%20Model%20B%202GB%20RAM-red.svg)](https://www.raspberrypi.org/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Firebase](https://img.shields.io/badge/Firebase-yellow.svg)](https://console.firebase.google.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)](https://console.firebase.google.com/)
 
 ## Project Overview
 
@@ -887,8 +887,8 @@ Significance Level:  α = 0.05
 | South | GPIO 22 | Pin 15 | DOWN | Button 3 |
 | West | GPIO 17 | Pin 11 | DOWN | Button 4 |
 
-**Common Ground**: All buttons share GND (Pin 39) connected to Breadboard 1’s GND rail.
-All buttons have debounce value of 300ms
+- **Common Ground**: All buttons share GND (Pin 39) connected to Breadboard 1’s GND rail.
+- All buttons have debounce value of 300ms
 
 **Cooling Fan (Raspberry Pi Case)**
 
