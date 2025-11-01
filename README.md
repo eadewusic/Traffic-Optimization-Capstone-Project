@@ -661,9 +661,9 @@ reward = agent_performance - baseline_performance
     comparative_approach = explicitly_beat_baseline()
 ```
 
-### PPO Agent Architecture (Final - Run 8)
+### PPO Agent Architecture (Final - Run 8)/ Model Architecture
 
-**Neural Network**:
+**Neural Network (Forward Pass)**:
 
 ![image](./images/PPO-Agent-Architecture.png)
 
@@ -674,12 +674,41 @@ Batch size:         64
 N-steps:            2048 (rollout buffer)
 Epochs per update:  10
 Gamma:              0.99 (discount factor)
-GAE lambda:         0.95 (advantage estimation)
+GAE lambda λ:         0.95 (advantage estimation)
 Clip range:         0.2 (PPO clipping)
 Entropy coef:       0.01 (exploration)
 Value coef:         0.5 (critic loss weight)
 Max grad norm:      0.5 (gradient clipping)
 ```
+
+**Why GAE?**
+
+GAE (Generalized Advantage Estimation) is a method to calculate how much better an action was than expected. It's the smart way PPO calculates "was this action good or bad?" using the set value head + rewards
+
+Instead of simple `Advantage = Reward - Value`, GAE uses:
+
+```bash
+Advantage = δ₀ + (γλ)δ₁ + (γλ)²δ₂ + ...
+
+Where:
+- δₜ = temporal difference error at each step
+- γ = gamma (0.99) - discount factor for future rewards
+- λ = lambda (0.95) - controls bias-variance tradeoff
+
+Why λ = 0.95?
+
+- λ = 0 → Only use 1-step (high bias, low variance)
+- λ = 1 → Use all future steps (low bias, high variance)
+- λ = 0.95 → Balanced (standard for PPO)
+```
+
+**In the Training:**
+
+With the `gae_lambda=0.95` parameter set, Stable-Baselines3 automatically:
+1. Value head estimates V(s) for current state
+2. Collects rewards over N-steps (2048 in this case)
+3. Uses GAE with λ=0.95 to compute advantages
+4. Updates policy to take actions with positive advantages
 
 ## Multi-Seed Validation (Run 8)
 
@@ -908,12 +937,6 @@ The system implements **Firebase Cloud Storage** for remote data backup, monitor
 - Cloud upload is post-deployment (asynchronous)
 - No cloud dependency for real-time control
 - Resilient to internet outages
-
-### System Architecture
-
-- **IoT-to-Cloud Pipeline**
-
-[Image](./images/IoT-to-Cloud-Pipeline.png)
 
 ### Firebase Services Used
 
@@ -1307,118 +1330,19 @@ Cleaning up GPIO...
 Demo finished
 ```
 
-### **Hardware Deployment Architecture**
+### System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                      Raspberry Pi 4 (2GB RAM)                         │
-│                                                                        │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │  Python Application (deploy_ppo_run8_seed789.py)              │ │
-│  │                                                                 │ │
-│  │  ┌──────────────────────────────────────────────────────────┐ │ │
-│  │  │  1. Initialize PPO Agent                                 │ │ │
-│  │  │     - Load: ppo_final_seed789.zip                        │ │ │
-│  │  │     - Load: vec_normalize_seed789.pkl                    │ │ │
-│  │  │     - Setup: RPi.GPIO (BCM mode)                         │ │ │
-│  │  └──────────────────────────────────────────────────────────┘ │ │
-│  │                          │                                      │ │
-│  │  ┌──────────────────────▼────────────────────────────────────┐ │ │
-│  │  │  2. Real-Time Control Loop (200 steps × 2 sec = 400s)   │ │ │
-│  │  │                                                           │ │ │
-│  │  │  INPUT:  Read button states (vehicle arrivals)          │ │ │
-│  │  │          Update queue state [N, S, E, W]                │ │ │
-│  │  │                                                           │ │ │
-│  │  │  PROCESS: Normalize state → PPO inference (<6ms)        │ │ │
-│  │  │           Action: 0 (N/S green) or 1 (E/W green)        │ │ │
-│  │  │                                                           │ │ │
-│  │  │  OUTPUT:  Control 12 LEDs via GPIO                      │ │ │
-│  │  │           - Show yellow transition (2s)                  │ │ │
-│  │  │           - Switch to new green phase                    │ │ │
-│  │  │           - Update red lights                            │ │ │
-│  │  └──────────────────────────────────────────────────────────┘ │ │
-│  │                          │                                      │ │
-│  │  ┌──────────────────────▼────────────────────────────────────┐ │ │
-│  │  │  3. Data Logging (Local Storage)                         │ │ │
-│  │  │     - CSV: Step-by-step log                              │ │ │
-│  │  │     - JSON: Performance stats                            │ │ │
-│  │  │     - PNG: Visualization                                 │ │ │
-│  │  │     - TXT: Summary report                                │ │ │
-│  │  │     → Saved to ~/Desktop/hardware_ppo/                   │ │ │
-│  │  └──────────────────────────────────────────────────────────┘ │ │
-│  └────────────┬───────────────────────────┬─────────────────────────┘ │
-│               │ GPIO OUTPUT (LEDs)        │ GPIO INPUT (Buttons)      │
-│  ┌────────────▼───────────────────────────▼────────────────────────┐ │
-│  │  GPIO Pin Configuration (BCM Numbering)                         │ │
-│  │                                                                  │ │
-│  │  LED OUTPUTS (12 pins):                                         │ │
-│  │  North: Red=2,  Yellow=3,  Green=4                              │ │
-│  │  South: Red=17, Yellow=27*, Green=22  (*Remapped after fault)  │ │
-│  │  East:  Red=10, Yellow=9,  Green=11                             │ │
-│  │  West:  Red=5,  Yellow=6,  Green=13                             │ │
-│  │                                                                  │ │
-│  │  BUTTON INPUTS (4 pins with internal pull-down):               │ │
-│  │  North: GPIO 14 (vehicle arrival simulation)                   │ │
-│  │  South: GPIO 15 (vehicle arrival simulation)                   │ │
-│  │  East:  GPIO 18 (vehicle arrival simulation)                   │ │
-│  │  West:  GPIO 23 (vehicle arrival simulation)                   │ │
-│  │  → Debounced 300ms, falling edge detection                     │ │
-│  └────────────┬───────────────────────────┬─────────────────────────┘ │
-└───────────────┼───────────────────────────┼──────────────────────────┘
-                │                           │
-     ┌──────────▼────────┐       ┌──────────▼────────┐
-     │  Physical LEDs    │       │  Physical Buttons │
-     └───────────────────┘       └───────────────────┘
+- **End-to-End System Architecture:**
+The diagram shows the three integrated components. In the training phase, the PPO algorithm is trained in a traffic simulation environment for multiple seeds, producing a trained model. The trained model is then transferred to Raspberry Pi 4, where it runs inference in real time to control traffic lights (via LEDs) based on vehicle queue states detected by push buttons. Local log files are periodically uploaded asynchronously to Firebase Cloud Storage for backup and remote access.
+[Image](./images/Capstone-System-Architecture.png)
 
-┌────────────────────────────────────────────────────────────────────┐
-│                   Physical Hardware Components                      │
-│                                                                      │
-│  ┌──────────────────────────────────────────────────────────────┐ │
-│  │  LED Traffic Light Modules (×4 directions)                   │ │
-│  │                                                               │ │
-│  │   North         East          South         West             │ │
-│  │   R Y G         R Y G         R Y G         R Y G           │ │
-│  │   ● ● ●         ● ● ●         ● ● ●         ● ● ●           │ │
-│  │                                                               │ │
-│  │  Each module: 5mm/10mm LEDs with BUILT-IN resistors         │ │
-│  │  Connection: GPIO (HIGH/LOW) → LED Module → GND             │ │
-│  │  Note: No external resistors needed (built into modules)    │ │
-│  └──────────────────────────────────────────────────────────────┘ │
-│                                                                      │
-│  ┌──────────────────────────────────────────────────────────────┐ │
-│  │  Tactile Push Buttons (×4 directions, 12mm momentary)       │ │
-│  │                                                               │ │
-│  │   [N]           [E]           [S]           [W]             │ │
-│  │   (●)           (●)           (●)           (●)             │ │
-│  │                                                               │ │
-│  │  Each button: One terminal to GPIO, other to GND            │ │
-│  │  When pressed: GPIO goes LOW (falling edge detected)        │ │
-│  │  When released: Returns to pull-down state                  │ │
-│  └──────────────────────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────────────────┘
+- **IoT-to-Cloud Pipeline**
+This diagram illustrates how the Raspberry Pi 4 housing the PPO Agent collects and logs data locally before asynchronously uploading it to Firebase Cloud Storage. It captures real-time GPIO operations and saves outputs like CSV logs, JSON stats, and plots for cloud synchronization.
+[Image](./images/IoT-to-Cloud-Pipeline.png)
 
-                               │
-                               │ Post-deployment
-                               ▼
-┌────────────────────────────────────────────────────────────────────┐
-│              Firebase Cloud Storage (Async Upload)                  │
-│                                                                      │
-│  Process 2: upload_to_firebase.py (Separate from deployment)       │
-│  - Scans ~/logs/hardware_ppo/run_8 for new logs                      │
-│  - Uploads CSV, JSON, PNG, TXT to gs://traffic-optimization-iot/   │
-│  - Tracks uploaded files in .uploaded_runs.json                    │
-│  - No interference with GPIO (process isolation)                   │
-│                                                                      │
-│  Storage Structure:                                                 │
-│  └── deployment_logs/                                               │
-│      └── run_8/                                                     │
-│          └── seed_789/                                              │
-│              ├── deployment_log.csv                                 │
-│              ├── deployment_stats.json                              │
-│              ├── deployment_report.txt                              │
-│              └── deployment_viz.png                                 │
-└────────────────────────────────────────────────────────────────────┘
-```
+- **Schematic/ Circuit Diagram**
+This schematic shows the Raspberry Pi 4-controlled four-way traffic light control system for North, East, South, and West lanes. Each lane includes red, yellow, and green LEDs with current-limiting resistors connected to the Pi’s GPIO pins.
+[Image](./hardware-diagrams/SCH_Schematic.png)
 
 ## Tech Stack/ Specifcations
 
