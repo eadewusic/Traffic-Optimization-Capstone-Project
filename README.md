@@ -688,18 +688,25 @@ GAE (Generalized Advantage Estimation) is a method to calculate how much better 
 Instead of simple `Advantage = Reward - Value`, GAE uses:
 
 ```bash
-Advantage = δ₀ + (γλ)δ₁ + (γλ)²δ₂ + ...
+Advantage = δ₀ + (γλ)δ₁ + (γλ)²δ₂ + ... + (γλ)ⁿδₙ
+
+OR
+
+Advantage = Σ (γλ)ᵗ δₜ   (sum from t=0 to n)
 
 Where:
-- δₜ = temporal difference error at each step
-- γ = gamma (0.99) - discount factor for future rewards
-- λ = lambda (0.95) - controls bias-variance tradeoff
+  δₜ (temporal difference error at each step) → δₜ = rₜ + γV(sₜ₊₁) - V(sₜ)
+  rₜ = reward at step t
+  V(sₜ) = value head's estimate of current state
+  V(sₜ₊₁) = value head's estimate of next state
+  γ = gamma (0.99) - discount factor for future rewards
+  λ = lambda (0.95) - controls bias-variance tradeoff
 
 Why λ = 0.95?
 
-- λ = 0 → Only use 1-step (high bias, low variance)
-- λ = 1 → Use all future steps (low bias, high variance)
-- λ = 0.95 → Balanced (standard for PPO)
+  λ = 0 → Only use 1-step (high bias, low variance)
+  λ = 1 → Use all future steps (low bias, high variance)
+  λ = 0.95 → Balanced (standard for PPO)
 ```
 
 **In the Training:**
@@ -709,6 +716,26 @@ With the `gae_lambda=0.95` parameter set, Stable-Baselines3 automatically:
 2. Collects rewards over N-steps (2048 in this case)
 3. Uses GAE with λ=0.95 to compute advantages
 4. Updates policy to take actions with positive advantages
+
+**Example:**
+
+For a step where 3 cars are cleared and have queue [2, 1, 0, 1]:
+
+```
+δₜ = reward_t + (0.99 × V(next_state)) - V(current_state)
+δₜ = +3.0 + (0.99 × 120) - 115
+δₜ = +3.0 + 118.8 - 115
+δₜ = +6.8  (positive = good action!)
+```
+
+Then the advantage at that step:
+```
+A_t = δ₀ + (0.99×0.95)δ₁ + (0.99×0.95)²δ₂ + ...
+A_t = 6.8 + (0.9405)δ₁ + (0.8845)δ₂ + ...
+```
+
+The **(γλ)** weights decay exponentially, so recent steps matter more.
+
 
 ## Multi-Seed Validation (Run 8)
 
@@ -1214,7 +1241,7 @@ python run8seed789_ppo_evaluation.py --seed 789
 
 ### **Hardware Deployment**
 
-#### **Setup Circuit**
+#### Setup Circuit
 
 Before deploying, wire the LED circuit according to the GPIO pinout on the Raspberry Pi:
 
@@ -1258,6 +1285,8 @@ Button Inputs & Cooling Fan Connections - (Active LOW with internal pull-down):
 * All LEDs share a **common ground** on Pin 25 (connected to Breadboard 2 GND rail).
 * All buttons share a **common ground** on Pin 39 (Breadboard 1 GND rail).
 * The cooling fan uses **Pin 4 (5V)** for power, **Pin 6 (GND)** for ground, and **GPIO 3 (Pin 5)** for PWM speed control.
+
+#### Physical Setup Circuit
 
 ![image](./images/actual-circuit-on-breadboard.JPG)
 
@@ -1334,15 +1363,15 @@ Demo finished
 
 - **End-to-End System Architecture:**
 The diagram shows the three integrated components. In the training phase, the PPO algorithm is trained in a traffic simulation environment for multiple seeds, producing a trained model. The trained model is then transferred to Raspberry Pi 4, where it runs inference in real time to control traffic lights (via LEDs) based on vehicle queue states detected by push buttons. Local log files are periodically uploaded asynchronously to Firebase Cloud Storage for backup and remote access.
-[Image](./images/Capstone-System-Architecture.png)
+![Image](./images/Capstone-System-Architecture.png)
 
 - **IoT-to-Cloud Pipeline**
 This diagram illustrates how the Raspberry Pi 4 housing the PPO Agent collects and logs data locally before asynchronously uploading it to Firebase Cloud Storage. It captures real-time GPIO operations and saves outputs like CSV logs, JSON stats, and plots for cloud synchronization.
-[Image](./images/IoT-to-Cloud-Pipeline.png)
+![Image](./images/IoT-to-Cloud-Pipeline.png)
 
 - **Schematic/ Circuit Diagram**
 This schematic shows the Raspberry Pi 4-controlled four-way traffic light control system for North, East, South, and West lanes. Each lane includes red, yellow, and green LEDs with current-limiting resistors connected to the Pi’s GPIO pins.
-[Image](./hardware-diagrams/SCH_Schematic.png)
+![Image](./hardware-diagrams/SCH_Schematic.png)
 
 ## Tech Stack/ Specifcations
 
