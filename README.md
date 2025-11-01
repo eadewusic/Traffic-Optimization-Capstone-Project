@@ -1,10 +1,10 @@
-# Traffic Light Optimization using Deep Reinforcement Learning and IoT [Capstone Project]
+# Traffic Light Optimization using Deep Reinforcement Learning and IoT
 
 This project deploys a trained PPO reinforcement learning agent on Raspberry Pi hardware with push-button inputs and LED traffic lights, demonstrating adaptive traffic control for African intersections to reduce congestion.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Stable-Baselines3](https://img.shields.io/badge/SB3-PPO-green.svg)](https://stable-baselines3.readthedocs.io/)
-[![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi%204%20Model%20B%202GB-red.svg)](https://www.raspberrypi.org/)
+[![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi%204%20Model%20B%202GB%20RAM-red.svg)](https://www.raspberrypi.org/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Project Overview
@@ -106,13 +106,13 @@ Implement a **Deep Reinforcement Learning agent** that:
 
 | Resource | Link | Description |
 |----------|------|-------------|
-| **GitHub Repository** | [GitHub](https://github.com/eadewusic/Traffic-Optimization-Capstone-Project) | Complete source code |
-| **Trained Models (Run 8)** | [Google Drive - Models](https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link) | All 5 seed models (100MB each) |
-| **Training Data & Logs** | [Google Drive - Data](https://drive.google.com/drive/folders/1Q8K8wo0kLMLhonOluAwU3bSakkX6rm7T?usp=drive_link) | Raw training data and logs |
+| GitHub Repository | [GitHub](https://github.com/eadewusic/Traffic-Optimization-Capstone-Project) | Complete source code |
+| Trained Models (Runs 7 & 8) | [Google Drive - Models](https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link) | All 5 seed models (100MB each) |
+| Training Data & Logs | [Google Drive - Data](https://drive.google.com/drive/folders/1Q8K8wo0kLMLhonOluAwU3bSakkX6rm7T?usp=drive_link) | Raw training data and logs |
 
 ## Complete Training Evolution (Runs 1-8)
 
-#### Run 1: Original Baseline - "The Starting Point"
+### Run 1: Original Baseline - "The Starting Point"
 
 **Configuration:**
 ```python
@@ -149,7 +149,7 @@ Scenarios Won:     2/5
 
 **Lesson Learned:** Reward function imbalance (13:1 ratio) prioritizes clearing vehicles but ignores dangerous queue buildup. System can achieve high throughput while letting queues grow catastrophically.
 
-#### Run 2: Deep Network Attempt - "The Kitchen Sink Failure"
+### Run 2: Deep Network Attempt - "The Kitchen Sink Failure"
 
 **Configuration:**
 ```python
@@ -191,7 +191,7 @@ Scenarios Won:     0/5 (LOST BOTH of Run 1's wins)
 
 **Lesson Learned:** NEVER change everything at once! When multiple variables change simultaneously, debugging becomes impossible. The 2.5:1 reward ratio made the agent too risk-averse, preventing effective learning. "More complex" ≠ "better" - overfitting on 20K parameters for simple 4D state space.
 
-#### Run 3: Balanced Reward - "The Goldilocks Breakthrough"
+### Run 3: Balanced Reward - "The Goldilocks Breakthrough"
 
 **Configuration:**
 ```python
@@ -229,7 +229,7 @@ Scenarios Won:     1/5
 
 **Lesson Learned:** The 6:1 reward ratio is optimal - balances throughput incentive with queue penalty. Not too aggressive (13:1), not too conservative (2.5:1). Reliability > peak performance for real-world deployment.
 
-#### Run 4a: Extended Training - "The Simple Champion"
+### Run 4a: Extended Training - "The Simple Champion"
 
 **Configuration:**
 ```python
@@ -266,7 +266,7 @@ Scenarios Won:     4/5 (MOST WINS)
 
 **Lesson Learned:** Simple architecture + extended training + balanced rewards = winner. Proves hypothesis that architectural simplicity with sufficient training beats complex networks. The "complete package" for deployment.
 
-#### Run 4b: Friend's Deep Network - "The Overfitting Lesson"
+### Run 4b: Friend's Deep Network - "The Overfitting Lesson"
 
 **Configuration:**
 ```python
@@ -297,7 +297,7 @@ Scenarios Won:     0/5 ❌ (LOST ALL)
 
 **Lesson Learned:** Architecture complexity must match problem complexity. For 4-dimensional state space, [64, 64] is optimal. More parameters ≠ better performance. This was a perfect A/B test vs Run 4a (only variable changed).
 
-#### Run 5: Broken Rewards - "The Cautionary Tale"
+### Run 5: Broken Rewards - "The Cautionary Tale"
 
 **Configuration:**
 ```python
@@ -336,7 +336,7 @@ Scenarios Won:     3/5* (MISLEADING - see below)
 
 **Lesson Learned:** Training duration cannot fix a broken reward function. 250K steps with wrong rewards < 100K steps with correct rewards. Always validate reward function on small episodes before full training. "New best" at -2,377 is not actually good!
 
-#### Run 6: Comparative Reward - "The Capstone Foundation"
+### Run 6: Comparative Reward - "The Capstone Foundation"
 
 **Configuration:**
 ```python
@@ -373,7 +373,7 @@ Status:            BREAKTHROUGH - Selected for Capstone
 
 **Lesson Learned:** Comparative rewards explicitly optimize for superiority over baseline. This run proved PPO could consistently beat traditional controllers, establishing the foundation for capstone refinement with multi-seed validation.
 
-#### Run 7: "Fine-Tuning Run 6"
+### Run 7: "Fine-Tuning Run 6"
 
 **Configuration:**
 ```python
@@ -412,7 +412,7 @@ Training Time:    ~2-3 hours
 
 **Lesson Learned:** Run 7 proved the fine-tuned approach works, but raised reproducibility questions. Led directly to Run 8's multi-seed validation strategy.
 
-#### Run 8: Multi-Seed Validation - "The Statistical Champion"
+### Run 8: Multi-Seed Validation - "The Statistical Champion"
 
 **Configuration:**
 ```python
@@ -620,16 +620,8 @@ Test: Wilcoxon signed-rank (paired, non-parametric)
 | Cars/Switch | 2.0 | 0.6 | +233% | >1.0 | Excellent |
 | Phase Changes | 15-20 | 30 | -40-67% | <30 | Efficient |
 | Adaptive? | Yes | No | Confirmed | Required | Pass |
-| **Hardware Specs** |
-| Platform | Raspberry Pi 4 Model B | - | - | - | - |
-| CPU | ARM Cortex-A72 @ 1.5GHz | - | - | - | - |
-| RAM | 4GB LPDDR4 | - | - | - | - |
-| Power | ~3W typical | - | - | <10W | Efficient |
-| Cost | $55 | - | - | <$100 | Affordable |
 
 **Key Finding:** System achieves real-time performance with 17× safety margin, proves practical viability on low-cost embedded hardware.
-
----
 
 ## Technical Architecture
 
@@ -688,8 +680,6 @@ Entropy coef:       0.01 (exploration)
 Value coef:         0.5 (critic loss weight)
 Max grad norm:      0.5 (gradient clipping)
 ```
-
----
 
 ## Multi-Seed Validation (Run 8)
 
@@ -812,51 +802,53 @@ Significance Level:  α = 0.05
 
 ### GPIO Pin Configuration
 
-**LED Outputs** (12 LEDs - 3 per direction):
+**LED Outputs (12 LEDs – 3 per direction)**
 
-| Lane | Red LED | Yellow LED | Green LED | GPIO Pins |
-|------|---------|------------|-----------|-----------|
-| North | LED1 | LED2 | LED3 | GPIO 2, 3, 4 |
-| South | LED4 | LED5 | LED6 | GPIO 17, 27, 22 |
-| East | LED7 | LED8 | LED9 | GPIO 10, 9, 11 |
-| West | LED10 | LED11 | LED12 | GPIO 5, 6, 13 |
+| Lane      | Signal | GPIO    | Pin    | Module Connection |
+| --------- | ------ | ------- | ------ | ----------------- |
+| **North** | Red    | GPIO 16 | Pin 36 | Module R          |
+|           | Yellow | GPIO 20 | Pin 38 | Module Y          |
+|           | Green  | GPIO 21 | Pin 40 | Module G          |
+| **East**  | Red    | GPIO 5  | Pin 29 | Module R          |
+|           | Yellow | GPIO 6  | Pin 31 | Module Y          |
+|           | Green  | GPIO 13 | Pin 33 | Module G          |
+| **South** | Red    | GPIO 23 | Pin 16 | Module R          |
+|           | Yellow | GPIO 24 | Pin 18 | Module Y          |
+|           | Green  | GPIO 25 | Pin 22 | Module G          |
+| **West**  | Red    | GPIO 14 | Pin 8  | Module R          |
+|           | Yellow | GPIO 4  | Pin 7  | Module Y          |
+|           | Green  | GPIO 18 | Pin 12 | Module G          |
+
+**Common Ground:** All LED modules share a GND rail connected to the Raspberry Pi’s GND (Pin 25).
 
 **Button Inputs** (4 buttons - vehicle arrivals):
 
-| Button | Direction | GPIO Pin | Pull | Debounce |
-|--------|-----------|----------|------|----------|
-| BTN1 | North | GPIO 14 | DOWN | 300ms |
-| BTN2 | South | GPIO 15 | DOWN | 300ms |
-| BTN3 | East | GPIO 18 | DOWN | 300ms |
-| BTN4 | West | GPIO 23 | DOWN | 300ms |
+| Direction | GPIO | Pin | Pull | Debounce | Connection |
+|------------|--------|--------|-----------|-------------|
+| North | GPIO 9 | Pin 21 | DOWN | 300 ms | Button 1 |
+| East | GPIO 10 | Pin 19 | DOWN | 300 ms | Button 2 |
+| South | GPIO 22 | Pin 15 | DOWN | 300 ms | Button 3 |
+| West | GPIO 17 | Pin 11 | DOWN | 300 ms | Button 4 |
 
-**Common**: Ground (GND) pins shared across all components
+**Common Ground**: All buttons share GND (Pin 39) connected to Breadboard 1’s GND rail.
+
+**Cooling Fan (Raspberry Pi Case)**
+
+| Component | Signal | Pin | Connection          |
+| --------- | ------ | -------- | ------------------- |
+| Fan +5V   | 5V     | Pin 4    | Power               |
+| Fan GND   | GND    | Pin 6    | Ground              |
+| Fan PWM   | GPIO 3 | Pin 5    | Speed control (PWM) |
+
+**Breadboard Ground Linking**
+
+| Connection                     | Description                   |
+| ------------------------------ | ----------------------------- |
+| Pi GND (Pin 39) → Breadboard 1 | Buttons’ ground rail          |
+| Pi GND (Pin 25) → Breadboard 2 | LED modules’ ground rail      |
+| Breadboard 2 → Breadboard 1    | Common ground synchronization |
 
 ### Hardware Assembly & Wiring
-
-**Circuit Configuration**:
-
-```
-Raspberry Pi 4 GPIO Layout:
-==========================
-
-POWER & GROUND:
-- 5V Power: Pins 2, 4 (for LED modules if needed)
-- 3.3V Power: Pins 1, 17 (for logic level)
-- Ground: Pins 6, 9, 14, 20, 25, 30, 34, 39 (shared common)
-
-LED CONNECTIONS (Active HIGH):
-North:  GPIO 2 (Red), GPIO 3 (Yellow), GPIO 4 (Green)
-South:  GPIO 17 (Red), GPIO 27 (Yellow), GPIO 22 (Green)
-East:   GPIO 10 (Red), GPIO 9 (Yellow), GPIO 11 (Green)
-West:   GPIO 5 (Red), GPIO 6 (Yellow), GPIO 13 (Green)
-
-BUTTON CONNECTIONS (Active LOW with internal pull-down):
-North Button: GPIO 14 → GND (when pressed)
-South Button: GPIO 15 → GND (when pressed)
-East Button:  GPIO 18 → GND (when pressed)
-West Button:  GPIO 23 → GND (when pressed)
-```
 
 **Assembly Steps**:
 
@@ -903,6 +895,151 @@ See Table 8 above for detailed metrics.
 - Efficiency: 2.0 cars/switch (233% better than fixed-timing)
 - Adaptive control: Confirmed through variable phase durations
 
+## Firebase Cloud Integration
+
+The system implements **Firebase Cloud Storage** for remote data backup, monitoring, and distributed traffic management. This IoT-to-Cloud architecture enables:
+- **Remote monitoring** of deployed traffic controllers
+- **Data backup** for offline analysis and model retraining
+- **Scalability** for multi-intersection deployments
+- **Historical data** for traffic pattern analysis
+
+**Architecture Philosophy**: **Local-first design** with cloud as backup
+- System operates fully offline (critical for Sub-Saharan Africa)
+- Cloud upload is post-deployment (asynchronous)
+- No cloud dependency for real-time control
+- Resilient to internet outages
+
+### System Architecture
+
+- **IoT-to-Cloud Pipeline**
+
+[Image](./images/IoT-to-Cloud-Pipeline.png)
+
+### Firebase Services Used
+
+**Firebase Storage** (Cloud Object Storage)
+- **Purpose**: Store deployment logs, models, training data
+- **Structure**: Organized by run/seed hierarchy
+- **Cost**: Free tier sufficient (<1GB/month for MVP)
+- **Access**: HTTPS URLs for web-based retrieval
+
+**Why NOT Firestore?**
+- Firestore is for structured NoSQL databases (real-time queries)
+- Our use case: File storage and backup (Firebase Storage is correct choice)
+
+### Firebase Upload Script Usage
+
+```bash
+# Ensure to install necessary package
+pip3 install firebase-admin --break-system-packages
+
+# Run deployment (local-first)
+python -u -m hardware.deploy_ppo_run8
+
+# Upload to cloud (separate process)
+python3 upload_to_firebase.py
+```
+
+### Critical Technical Challenge: Threading Conflict
+
+**Problem Encountered**: Firebase SDK broke GPIO edge detection
+
+**Symptoms**:
+- Button presses stopped being detected during deployment
+- GPIO callbacks not firing
+- System appeared frozen to user input
+
+**Root Cause Analysis**:
+```python
+# BROKEN: Threading conflict
+import firebase_admin
+from RPi import GPIO
+
+# Firebase SDK spawns background threads
+firebase_admin.initialize_app()
+
+# GPIO edge detection uses system interrupts
+GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, 
+                     callback=on_button_press)
+
+# CONFLICT: Firebase threads interfere with GPIO interrupts
+# Result: Callbacks never fire, buttons don't work
+```
+
+**5 Attempted Solutions**:
+
+1. ❌ **Different threading modes** - `daemon=True` flags → No effect
+2. ❌ **Callback priorities** - Tried higher priority for GPIO → No effect  
+3. ❌ **Thread-safe queues** - `queue.Queue()` between threads → Still blocked
+4. ❌ **Event loop integration** - `asyncio` with Firebase → Complex, unreliable
+5. **Process isolation** - **Separate processes** → **SOLVED!**
+
+**Final Solution: Process Isolation**
+
+```python
+# WORKING: Separate processes (no shared memory)
+
+# Process 1: Hardware deployment (GPIO only)
+python -u -m hardware.deploy_ppo_run7
+# - Handles GPIO edge detection
+# - Saves logs locally
+# - Exits cleanly
+
+# Process 2: Cloud upload (Firebase only)  
+python3 upload_to_firebase.py
+# - Reads local files
+# - Uploads to Firebase Storage
+# - No GPIO interaction
+
+# KEY: Processes don't share threading context
+# Result: Both work independently without conflict
+```
+
+**Lesson Learned**: In embedded systems with real-time constraints, **process isolation** is safer than clever threading hacks.
+
+### Firebase Setup Instructions
+
+**1. Create Firebase Project**:
+```bash
+1. Go to https://console.firebase.google.com
+2. Create new project: "traffic-optimization-iot"
+3. Enable Firebase Storage
+4. Set up security rules (read/write authenticated)
+```
+
+**2. Generate Service Account Key**:
+```bash
+1. Project Settings → Service Accounts
+2. Generate new private key (JSON)
+3. Download as serviceAccountKey.json
+4. Place in project root (add to .gitignore!)
+```
+
+**3. Install Firebase Admin SDK**:
+```bash
+pip install firebase-admin
+```
+
+**4. Configure Storage Rules**:
+```javascript
+// Firebase Storage Rules
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
+
+**5. Test Connection**:
+```bash
+python3 upload_to_firebase.py --test
+# Should print: "Firebase connection successful!"
+```
+
 ## Installation & Setup
 
 ### **Prerequisites**
@@ -923,6 +1060,9 @@ Install required system packages:
 ```bash
 # Update package list
 sudo apt-get update
+
+# Upgrade package list
+sudo apt-get upgrade
 
 # Install Python development tools
 sudo apt-get install -y python3-dev python3-pip python3-.venv
@@ -964,9 +1104,12 @@ pip install -r requirements.txt
 python -c "import stable_baselines3; print(f'SB3 version: {stable_baselines3.__version__}')"
 python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
 python -c "import traci; print('TraCI imported successfully')"
+
+# Re-download if needed
+pip install RPi.GPIO numpy pandas matplotlib stable_baselines3 
 ```
 
-### **Step 5a: Reproduce Run 8 (Multi-seed)**
+### **Step 4a: Reproduce Run 8 (Multi-seed)**
 
 ```bash
 cd training
@@ -982,11 +1125,11 @@ python train_run8.py --seed 1000 --total-steps 1000000
 python aggregate_run8_seeds.py
 ```
 
-### **Step 5b: Download Pretrained Models (Optional)**
+### **Step 4b: Download Pretrained Models (Optional)**
 
 If you want to use the run 7 or run 8 pretrained models instead of training from scratch:
 
-For Run 7:
+**For Run 7:**
 
 ```bash
 # Create models directory
@@ -1000,7 +1143,7 @@ wget https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?us
 wget https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link -O vecnormalize.pkl
 ```
 
-For Run 8:
+**For Run 8:**
 
 ```bash
 # Create models directory
@@ -1015,7 +1158,6 @@ wget https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?us
 wget https://drive.google.com/drive/folders/1Ik6iulDhcPMBermv-7wRNP02IbwNJRua?usp=drive_link -O vec_normalize_seed789.pkl
 
 # Option 2: Manually download from Google Drive and place in models/hardware_ppo/run_8/
-
 # Extract models (for all 5 seeds)
 for seed in 42 123 456 789 1000; do
     unzip seed_${seed}.zip -d seed_${seed}/
@@ -1024,9 +1166,9 @@ done
 cd ../../../
 ```
 
-### **Step 6: Test Trained Model**
+### **Step 5: Test Trained Model**
 
-# Step 1: Determine which model should be deployed to Raspberry Pi
+**Determine which model should be deployed to Raspberry Pi**
 ```bash
 # Manually download [run7_training_summary.json](https://drive.google.com/drive/folders/12yut1zZzlIUBXPx7lnLa4lZtFfp-qCBf?usp=drive_link) and [run 8 seed_789's training_summary.json](https://drive.google.com/drive/folders/1y_WwS4rAf3y0Y_daaMha2lR3pxQ4ZYqq?usp=drive_link) from Google Drive in 
 
@@ -1034,13 +1176,13 @@ cd tests
 python compare_run7_vs_run8.py --seed 789
 ```
 
-# Step 2: Baseline Comparison
+**Baseline Comparison**
 ```bash
 cd tests
 python test_run8seed789_vs_baseline.py
 ```
 
-### **Step 7: Evaluate Trained Model**
+### **Step 6: Evaluate Trained Model**
 
 ```bash
 cd evaluation
@@ -1051,29 +1193,48 @@ python run8seed789_ppo_evaluation.py --seed 789
 
 #### **Setup Circuit**
 
-Before deploying, wire the LED circuit according to the GPIO pinout:
+Before deploying, wire the LED circuit according to the GPIO pinout on the Raspberry Pi:
 
 ```
-Raspberry Pi 4 GPIO Pinout (BCM numbering):
-┌────────────────────────────────────┐
-│  GPIO Pin  │  LED Direction │ Color │
-├────────────┼────────────────┼───────┤
-│   GPIO 17  │  North         │  Red  │
-│   GPIO 27  │  North         │ Yellow│
-│   GPIO 22  │  North         │ Green │
-│   GPIO 23  │  South         │  Red  │
-│   GPIO 24  │  South         │ Yellow│
-│   GPIO 25  │  South         │ Green │
-│   GPIO 5   │  East          │  Red  │
-│   GPIO 6   │  East          │ Yellow│
-│   GPIO 13  │  East          │ Green │
-│   GPIO 19  │  West          │  Red  │
-│   GPIO 26  │  West          │ Yellow│
-│   GPIO 21  │  West          │ Green │
-└────────────────────────────────────┘
+LED Connections - (Active HIGH):
 
-Connection: GPIO Pin → 220Ω Resistor → LED Anode (+) → LED Cathode (-) → Ground
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│  GPIO Pin  │ Pin No │ LED Direction │ Color  │ Connection Path                               │
+├────────────┼────────┼───────────────┼────────┼------------------------------------------------│
+│   GPIO 16  │  36    │ North         │ Red    │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 20  │  38    │ North         │ Yellow │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 21  │  40    │ North         │ Green  │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 5   │  29    │ East          │ Red    │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 6   │  31    │ East          │ Yellow │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 13  │  33    │ East          │ Green  │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 23  │  16    │ South         │ Red    │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 24  │  18    │ South         │ Yellow │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 25  │  22    │ South         │ Green  │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 14  │   8    │ West          │ Red    │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 4   │   7    │ West          │ Yellow │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+│   GPIO 18  │  12    │ West          │ Green  │ GPIO → 331Ω → LED(+) → LED(–) → GND (Pin 25)  │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Button Inputs & Cooling Fan Connections - (Active LOW with internal pull-down):
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│  GPIO Pin  │ Pin │ Component │ Direction │ Function / Connection Path                     │
+├────────────┼────────┼------------┼------------┼------------------------------------------------│
+│   GPIO 9   │  21    │ Button    │ North     │ Button → GND (Pin 39)                          │
+│   GPIO 10  │  19    │ Button    │ East      │ Button → GND (Pin 39)                          │
+│   GPIO 22  │  15    │ Button    │ South     │ Button → GND (Pin 39)                          │
+│   GPIO 17  │  11    │ Button    │ West      │ Button → GND (Pin 39)                          │
+│   GPIO 3   │   5    │ Fan PWM   │ -         │ PWM Control Signal                             │
+│   5V Power │   4    │ Fan Power │ -         │ +5V Supply to Fan                              │
+│   GND      │   6    │ Fan GND   │ -         │ Ground Connection                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Note:**
+
+* All LEDs share a **common ground** on Pin 25 (connected to Breadboard 2 GND rail).
+* All buttons share a **common ground** on Pin 39 (Breadboard 1 GND rail).
+* The cooling fan uses **Pin 4 (5V)** for power, **Pin 6 (GND)** for ground, and **GPIO 3 (Pin 5)** for PWM speed control.
 
 ![image](./images/actual-circuit-on-breadboard.JPG)
 
@@ -1101,6 +1262,9 @@ ssh climi-tailscale
 
 # Navigate to project directory
 cd ~/Traffic-Optimization-Capstone-Project/hardware
+
+# Navigate into the virtual environment
+source .venv/bin/activate
 
 # Run deployment script (requires root for GPIO)
 sudo python -u -m hardware.deploy_ppo_run8
@@ -1146,60 +1310,121 @@ Demo finished
 ### **Hardware Deployment Architecture**
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                      Raspberry Pi 4                             │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐ │
-│  │  Python Application                                      │ │
-│  │                                                           │ │
-│  │  ┌────────────────────────────────────────────────────┐ │ │
-│  │  │  1. Load Trained Model                            │ │ │
-│  │  │     - ppo_final_seed789.zip                       │ │ │
-│  │  │     - vec_normalize_seed789.pkl                   │ │ │
-│  │  └────────────────────────────────────────────────────┘ │ │
-│  │                          │                                │ │
-│  │  ┌────────────────────────▼──────────────────────────┐ │ │
-│  │  │  2. Simulation Loop                              │ │ │
-│  │  │     - Generate synthetic state                   │ │ │
-│  │  │     - Normalize state                            │ │ │
-│  │  │     - Get action from PPO                        │ │ │
-│  │  └────────────────────────┬──────────────────────────┘ │ │
-│  │                          │                                │ │
-│  │  ┌────────────────────────▼──────────────────────────┐ │ │
-│  │  │  3. GPIO Control                                 │ │ │
-│  │  │     - Map action to LED states                   │ │ │
-│  │  │     - Control 12 GPIO pins                       │ │ │
-│  │  └────────────────────────────────────────────────────┘ │ │
-│  └──────────────┬───────────────────────────────────────────┘ │
-│                 │                                               │
-│  ┌──────────────▼───────────────────────────────────────────┐ │
-│  │  GPIO Pins (BCM Numbering)                              │ │
-│  │  North: R(17), Y(27), G(22)                             │ │
-│  │  South: R(23), Y(24), G(25)                             │ │
-│  │  East:  R(5),  Y(6),  G(13)                             │ │
-│  │  West:  R(19), Y(26), G(21)                             │ │
-│  └──────────────┬───────────────────────────────────────────┘ │
-└─────────────────┼────────────────────────────────────────────────┘
-                  │ GPIO Signals
-                  ▼
-┌────────────────────────────────────────────────────────────────┐
-│                      LED Traffic Lights                         │
-│                                                                  │
-│   North         East          South         West                │
-│   R Y G         R Y G         R Y G         R Y G              │
-│   ● ● ●         ● ● ●         ● ● ●         ● ● ●              │
-│                                                                  │
-│  Each LED connected via:                                        │
-│  - 331Ω current-limiting resistor                              │
-│  - GPIO → Resistor → LED → Ground                              │
-└────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                      Raspberry Pi 4 (2GB RAM)                         │
+│                                                                        │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  Python Application (deploy_ppo_run8_seed789.py)              │ │
+│  │                                                                 │ │
+│  │  ┌──────────────────────────────────────────────────────────┐ │ │
+│  │  │  1. Initialize PPO Agent                                 │ │ │
+│  │  │     - Load: ppo_final_seed789.zip                        │ │ │
+│  │  │     - Load: vec_normalize_seed789.pkl                    │ │ │
+│  │  │     - Setup: RPi.GPIO (BCM mode)                         │ │ │
+│  │  └──────────────────────────────────────────────────────────┘ │ │
+│  │                          │                                      │ │
+│  │  ┌──────────────────────▼────────────────────────────────────┐ │ │
+│  │  │  2. Real-Time Control Loop (200 steps × 2 sec = 400s)   │ │ │
+│  │  │                                                           │ │ │
+│  │  │  INPUT:  Read button states (vehicle arrivals)          │ │ │
+│  │  │          Update queue state [N, S, E, W]                │ │ │
+│  │  │                                                           │ │ │
+│  │  │  PROCESS: Normalize state → PPO inference (<6ms)        │ │ │
+│  │  │           Action: 0 (N/S green) or 1 (E/W green)        │ │ │
+│  │  │                                                           │ │ │
+│  │  │  OUTPUT:  Control 12 LEDs via GPIO                      │ │ │
+│  │  │           - Show yellow transition (2s)                  │ │ │
+│  │  │           - Switch to new green phase                    │ │ │
+│  │  │           - Update red lights                            │ │ │
+│  │  └──────────────────────────────────────────────────────────┘ │ │
+│  │                          │                                      │ │
+│  │  ┌──────────────────────▼────────────────────────────────────┐ │ │
+│  │  │  3. Data Logging (Local Storage)                         │ │ │
+│  │  │     - CSV: Step-by-step log                              │ │ │
+│  │  │     - JSON: Performance stats                            │ │ │
+│  │  │     - PNG: Visualization                                 │ │ │
+│  │  │     - TXT: Summary report                                │ │ │
+│  │  │     → Saved to ~/Desktop/hardware_ppo/                   │ │ │
+│  │  └──────────────────────────────────────────────────────────┘ │ │
+│  └────────────┬───────────────────────────┬─────────────────────────┘ │
+│               │ GPIO OUTPUT (LEDs)        │ GPIO INPUT (Buttons)      │
+│  ┌────────────▼───────────────────────────▼────────────────────────┐ │
+│  │  GPIO Pin Configuration (BCM Numbering)                         │ │
+│  │                                                                  │ │
+│  │  LED OUTPUTS (12 pins):                                         │ │
+│  │  North: Red=2,  Yellow=3,  Green=4                              │ │
+│  │  South: Red=17, Yellow=27*, Green=22  (*Remapped after fault)  │ │
+│  │  East:  Red=10, Yellow=9,  Green=11                             │ │
+│  │  West:  Red=5,  Yellow=6,  Green=13                             │ │
+│  │                                                                  │ │
+│  │  BUTTON INPUTS (4 pins with internal pull-down):               │ │
+│  │  North: GPIO 14 (vehicle arrival simulation)                   │ │
+│  │  South: GPIO 15 (vehicle arrival simulation)                   │ │
+│  │  East:  GPIO 18 (vehicle arrival simulation)                   │ │
+│  │  West:  GPIO 23 (vehicle arrival simulation)                   │ │
+│  │  → Debounced 300ms, falling edge detection                     │ │
+│  └────────────┬───────────────────────────┬─────────────────────────┘ │
+└───────────────┼───────────────────────────┼──────────────────────────┘
+                │                           │
+     ┌──────────▼────────┐       ┌──────────▼────────┐
+     │  Physical LEDs    │       │  Physical Buttons │
+     └───────────────────┘       └───────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│                   Physical Hardware Components                      │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐ │
+│  │  LED Traffic Light Modules (×4 directions)                   │ │
+│  │                                                               │ │
+│  │   North         East          South         West             │ │
+│  │   R Y G         R Y G         R Y G         R Y G           │ │
+│  │   ● ● ●         ● ● ●         ● ● ●         ● ● ●           │ │
+│  │                                                               │ │
+│  │  Each module: 5mm/10mm LEDs with BUILT-IN resistors         │ │
+│  │  Connection: GPIO (HIGH/LOW) → LED Module → GND             │ │
+│  │  Note: No external resistors needed (built into modules)    │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐ │
+│  │  Tactile Push Buttons (×4 directions, 12mm momentary)       │ │
+│  │                                                               │ │
+│  │   [N]           [E]           [S]           [W]             │ │
+│  │   (●)           (●)           (●)           (●)             │ │
+│  │                                                               │ │
+│  │  Each button: One terminal to GPIO, other to GND            │ │
+│  │  When pressed: GPIO goes LOW (falling edge detected)        │ │
+│  │  When released: Returns to pull-down state                  │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
+
+                               │
+                               │ Post-deployment
+                               ▼
+┌────────────────────────────────────────────────────────────────────┐
+│              Firebase Cloud Storage (Async Upload)                  │
+│                                                                      │
+│  Process 2: upload_to_firebase.py (Separate from deployment)       │
+│  - Scans ~/logs/hardware_ppo/run_8 for new logs                      │
+│  - Uploads CSV, JSON, PNG, TXT to gs://traffic-optimization-iot/   │
+│  - Tracks uploaded files in .uploaded_runs.json                    │
+│  - No interference with GPIO (process isolation)                   │
+│                                                                      │
+│  Storage Structure:                                                 │
+│  └── deployment_logs/                                               │
+│      └── run_8/                                                     │
+│          └── seed_789/                                              │
+│              ├── deployment_log.csv                                 │
+│              ├── deployment_stats.json                              │
+│              ├── deployment_report.txt                              │
+│              └── deployment_viz.png                                 │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Tech Stack/ Specifcations
 
 ### Tech Stack
 
-### **Machine Learning & AI**
+**Machine Learning & AI**
 
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
@@ -1208,7 +1433,7 @@ Demo finished
 | **Training** | Gym | 0.26.2 | RL environment interface |
 | **Monitoring** | TensorBoard | 2.8.0 | Training visualization |
 
-### **Hardware Deployment**
+**Hardware Deployment**
 
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
@@ -1217,7 +1442,7 @@ Demo finished
 | **OS** | Raspberry Pi OS | Debian 12 | Operating system |
 | **Model Loading** | Stable-Baselines3 | 2.0.0 | PPO inference |
 
-### **Data Analysis & Visualization**
+**Data Analysis & Visualization**
 
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
@@ -1225,14 +1450,13 @@ Demo finished
 | **Data Manipulation** | Pandas | 1.4.0 | Data analysis |
 | **Visualization** | Matplotlib | 3.5.1 | Plotting |
 
-### **Development Tools**
+**Development Tools**
 
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
 | **Version Control** | Git | 2.34.1 | Source control |
 | **Python Environment** | .venv | 3.9 | Virtual environments |
 | **IDE** | VS Code | 1.75.0 | Code editor |
-| **Documentation** | Markdown | - | README, docs |
 
 ### Technical Specifications
 
@@ -1249,7 +1473,7 @@ Demo finished
 - Automated logging and visualization system
 
 **Model Details:**
-- Model: PPO_Run7
+- Model: ppo_final_seed789
 - Training: Simulation-based
 - Deployment: Hardware transfer learning
 - Control frequency: Variable (based on traffic)
@@ -1331,6 +1555,15 @@ Demo finished
 - [64, 64] outperformed [128, 64, 32] for 4D state space
 - Prevents overfitting, improves generalization
 - Faster training, lower computational cost
+
+### 7. IoT-to-Cloud Architecture (Firebase Integration)
+
+**Production-ready cloud integration with local-first design**:
+- Firebase Storage for remote monitoring and data backup
+- Solved threading conflict through process isolation architecture
+- Local-first design ensures operation during internet outages
+- Enables multi-intersection data aggregation and remote model updates
+- Smart duplicate detection prevents redundant uploads
 
 ## Data Analysis & Performance Metrics
 
@@ -1422,7 +1655,7 @@ Range: [1,987.7, 2,066.3]
 Coefficient of Variation: 1.3%
 ```
 
-**Champion Model Selection:** Seed 789 selected based on highest final reward (2,066.3) for hardware deployment and baseline comparison testing.
+**Champion Model:** Seed 789 selected based on highest final reward (2,066.3) for hardware deployment and baseline comparison testing.
 
 **Training Convergence Pattern:**
 
@@ -1431,7 +1664,7 @@ All seeds exhibited similar learning curve:
 2. **Phase 2 (200K-600K steps):** Gradual refinement and optimization
 3. **Phase 3 (600K-1M steps):** Convergence and stability (minor fluctuations)
 
-**Key Training Insight:** Convergence occurred around 600K steps (60% through training), with remaining 400K steps providing fine-tuning and stability validation. This suggests 1M steps is sufficient for reliable convergence in this environment.
+**Key Insight:** Convergence occurred around 600K steps (60% through training), with remaining 400K steps providing fine-tuning and stability validation. This suggests 1M steps is sufficient for reliable convergence in this environment.
 
 ### Policy Behavior Analysis
 
@@ -1611,7 +1844,7 @@ The p-value of 0.0002 indicates extremely strong evidence that PPO consistently 
 2. PPO wins 72% of scenarios (strong directionality)
 3. Paired testing eliminates scenario difficulty confounds
 
-This is analogous to a clinical trial showing a drug consistently works slightly better across many patients—small effect but high confidence.
+This is analogous to a clinical trial showing a drug consistently works slightly better across many patients; small effect but high confidence.
 
 ### Throughput Analysis
 
@@ -1959,7 +2192,9 @@ Even "worst" seed (42) achieved 98.1% of champion performance. This demonstrates
 
 ## Deployment Plan
 
-The deployment strategy follows a three-phase approach to integrate a statistically validated PPO model into a working hardware prototype for traffic signal control. Phase 1 focused on model development and validation, successfully delivering a champion model (Run 8 Seed 789) that demonstrated statistically significant improvements over fixed-timing baselines across 25 diverse scenarios. The Wilcoxon signed-rank test confirmed an 8.9% reduction in mean delay (p=0.018), 8.8% reduction in queue length (p=0.025), and highly significant reward improvement (p=0.0002), with the model achieving a 72% win rate. Multi-seed validation across five independent training runs proved exceptional reproducibility with only 1.3% coefficient of variation, establishing confidence in the model's robustness to random initialization.
+The deployment strategy follows a three-phase approach to integrate a statistically validated PPO model into a working hardware prototype for traffic signal control.
+
+Phase 1 focused on model development and validation, successfully delivering a champion model (Run 8 Seed 789) that demonstrated statistically significant improvements over fixed-timing baselines across 25 diverse scenarios. The Wilcoxon signed-rank test confirmed an 8.9% reduction in mean delay (p=0.018), 8.8% reduction in queue length (p=0.025), and highly significant reward improvement (p=0.0002), with the model achieving a 72% win rate. Multi-seed validation across five independent training runs proved exceptional reproducibility with only 1.3% coefficient of variation, establishing confidence in the model's robustness to random initialization.
 
 Phase 2 successfully deployed the validated model on a Raspberry Pi 4 (2GB RAM) hardware platform costing Fr141,700 (~$108 USD), achieving a critical milestone of real-time inference in just 5.78ms mean time with 17× safety margin under the 100ms real-time threshold. The complete hardware prototype integrates 12 LEDs for traffic signal visualization and 4 push buttons for simulating vehicle arrivals, with the deployment script (deploy_ppo_run8_seed789.py) providing comprehensive data logging, LED control through GPIO pins, and comparison modes for validation against fixed-timing baselines. Hardware testing confirmed adaptive behavior with 233% better control efficiency (2.0 versus 0.6 cars cleared per phase change) and sustained stable performance with only 1.14ms standard deviation in inference time.
 
@@ -1985,4 +2220,4 @@ If you have any questions, feedback, or collaboration requests, please feel free
 
 ---
 
-*Project Journey: 8 Training Runs → 5 Multi-Seed Validation → Statistical Testing (p=0.0002) → Hardware Deployment (5.98ms) → Success*
+*Project Journey: 4 RL algorithms (DQN, REINFORCE, PPO, Actor-Critic) trained across 17 hyperparameter configurations (PPO won) → 8 Fine-tuned Training Runs → Run 8's 5 Multi-Seed Validation (Seed 789 won) → Statistical Testing (p=0.0002) → Hardware Deployment on Raspberry Pi (5.98ms) → Cloud Integration → Successful Intelligent Traffic Light Controller Built*
