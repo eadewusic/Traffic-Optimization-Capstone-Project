@@ -878,9 +878,9 @@ Significance Level:  α = 0.05
 **Common Ground:** All LED modules share a GND rail connected to the Raspberry Pi’s GND (Pin 25).
 
 **Button Inputs** (4 buttons - vehicle arrivals):
-<br>
+
 | Direction | GPIO | Pin | Pull | Debounce | Connection |
-|------------|--------|--------|-----------|-------------|
+|------------|--------|--------|-----------|----------- |
 | North | GPIO 9 | Pin 21 | DOWN | 300 ms | Button 1 |
 | East | GPIO 10 | Pin 19 | DOWN | 300 ms | Button 2 |
 | South | GPIO 22 | Pin 15 | DOWN | 300 ms | Button 3 |
@@ -1361,19 +1361,19 @@ Demo finished
 
 ### System Architecture
 
-- **End-to-End System Architecture**
-<br>
+- **End-to-End System Architecture:**
 The diagram shows the three integrated components. In the training phase, the PPO algorithm is trained in a traffic simulation environment for multiple seeds, producing a trained model. The trained model is then transferred to Raspberry Pi 4, where it runs inference in real time to control traffic lights (via LEDs) based on vehicle queue states detected by push buttons. Local log files are periodically uploaded asynchronously to Firebase Cloud Storage for backup and remote access.
+
 ![Image](./images/Capstone-System-Architecture.png)
 
 - **IoT-to-Cloud Pipeline**
-<br>
 This diagram illustrates how the Raspberry Pi 4 housing the PPO Agent collects and logs data locally before asynchronously uploading it to Firebase Cloud Storage. It captures real-time GPIO operations and saves outputs like CSV logs, JSON stats, and plots for cloud synchronization.
+
 ![Image](./images/IoT-to-Cloud-Pipeline.png)
 
 - **Schematic/ Circuit Diagram**
-<br>
 This schematic shows the Raspberry Pi 4-controlled four-way traffic light control system for North, East, South, and West lanes. Each lane includes red, yellow, and green LEDs with current-limiting resistors connected to the Pi’s GPIO pins.
+
 ![Image](./hardware-diagrams/SCH_Schematic.png)
 
 ## Tech Stack/ Specifcations
