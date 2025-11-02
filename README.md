@@ -909,6 +909,7 @@ Significance Level:  α = 0.05
 ### Hardware Assembly & Wiring
 
 **Raspberry Pi 4 Pinout Description**
+
 ![Image](./images/Raspberry-Pi-4-GPIO-Pins-Description.png)
 
 **Assembly Steps**:
@@ -2160,28 +2161,36 @@ Even "worst" seed (42) achieved 98.1% of champion performance. This demonstrates
 2. **Run the run 8 deployment script to deploy and evaluate the PPO reinforcement learning model on the Raspberry Pi to control real traffic lights with GPIO hardware, logging performance metrics, visualizations, and comparisons against a fixed-timing baseline controller.**
 
 - **A. The Deployment Run - Demo Menu**
+
 ![Image](./images/deployment-run-menu.png)
 
 - **B. PPO Steps & Decision Process - 60s Demo**
+
 ![Image](./images/ppo-steps-decision.png)
 
 - **C. The Deployment Results - 60s Demo**
-The 1 remaining car (East lane) is expected because it arrived late in the demo (around step 22-23), the agent cleared 1 East car during brief E/W green, demo ended at 60s before full clearing, and if the demo ran longer, the remaining 1 car would clear
+
+The 1 remaining car (East lane) is expected because it arrived late in the demo (around step 22-23). The agent cleared 1 East car during brief E/W green, demo ended at 60s before full clearing, and if the demo ran longer, the remaining 1 car would clear
+
 ![Image](./images/deployment-results.png)
 
 3. **Connection to Firebase (Separate Process after deployment completes so that Firebase never interferes with GPIO)**
 
 - **A. Run the standalone Firebase Storage uploader script**
+
 ![Image](./images/firebase-run-terminal-output.png)
 
 - **B. What gets to be uploaded to Firebase (Directories created)**
+
 ![Image](./images/firebase-cloud-storage.png)
 
 - **C. The Firebase storage state BEFORE running the uploader script**
+
 ![Image](./images/before-uploading-to-firebase.png)
 
 - **D. The Firebase storage state AFTER running the uploader script [New run folder added!]**
-![Image](./images/after-uploading-to-firebase.png)
+
+![Image](./images/after-uploading-to-firebase.jpg)
 
 ## Deployment Plan
 
