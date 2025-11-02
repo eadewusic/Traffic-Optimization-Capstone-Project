@@ -87,7 +87,10 @@ def upload_single_run(run_folder, force=False):
 
 def upload_all_new_runs(results_dir):
     """Upload all runs that haven't been uploaded yet"""
+    # Support both old (run_YYYYMMDD_HHMMSS) and new (run8_seed789_YYYYMMDD_HHMMSS) naming
     run_folders = glob.glob(os.path.join(results_dir, "run_*"))
+    run_folders.extend(glob.glob(os.path.join(results_dir, "run[0-9]*_seed*")))
+    run_folders = list(set(run_folders))  # Remove duplicates
     run_folders.sort(reverse=True)  # Most recent first
     
     # Also find comparison files
@@ -159,7 +162,10 @@ def upload_all_new_runs(results_dir):
 
 def upload_all_runs_force(results_dir):
     """Upload ALL runs and comparisons, even if already uploaded (creates duplicates in Firebase)"""
+    # Support both old (run_YYYYMMDD_HHMMSS) and new (run8_seed789_YYYYMMDD_HHMMSS) naming
     run_folders = glob.glob(os.path.join(results_dir, "run_*"))
+    run_folders.extend(glob.glob(os.path.join(results_dir, "run[0-9]*_seed*")))
+    run_folders = list(set(run_folders))  # Remove duplicates
     run_folders.sort(reverse=True)
     
     comparison_files = glob.glob(os.path.join(results_dir, "comparison_analysis_*.txt"))

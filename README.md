@@ -2148,6 +2148,24 @@ Possible reasons:
 
 Even "worst" seed (42) achieved 98.1% of champion performance. This demonstrates training is robust - no catastrophic failures across different initializations.
 
+## Project Workflow (From IoT to Firebase)
+
+1. **Test all connected hardware components to ensure they are working**
+
+![Image](./images/test_simple_hardware-terminal-output.png)
+
+2. **Run the run 8 deployment script to deploy and evaluate the PPO reinforcement learning model on the Raspberry Pi to control real traffic lights with GPIO hardware, logging performance metrics, visualizations, and comparisons against a fixed-timing baseline controller.**
+
+- **A. The Deployment Run - Demo Menu**
+![Image](./images/deployment-run-menu.png)
+
+- **B. PPO Steps & Decision Process - 60s Demo**
+![Image](./images/ppo-steps-decision.png)
+
+- **C. The Deployment Results - 60s Demo**
+The 1 remaining car (East lane) is expected because it arrived late in the demo (around step 22-23), the agent cleared 1 East car during brief E/W green, demo ended at 60s before full clearing, and if the demo ran longer, the remaining 1 car would clear
+![Image](./images/deployment-results.png)
+
 ## Deployment Plan
 
 The deployment strategy follows a three-phase approach to integrate a statistically validated PPO model into a working hardware prototype for traffic signal control.
