@@ -27,7 +27,7 @@ Rapid urbanization is one of the most significant global transformations of the 
 
 - **Economic Losses:** $4 billion annually in Lagos, Nigeria alone due to congestion (Abdullahi et al., 2024)
 - **Environmental Impact:** Excessive idling increases CO₂ emissions and fuel consumption
-- **Lesser Quality of Life:** Average commuter in the city can spend up to 40 hours in traffic every week, time that could otherwise be used for productive activities (Opiyo & Nzuve, 2021).
+- **Lower Quality of Life:** Average commuter in the city can spend up to 40 hours in traffic every week, time that could otherwise be used for productive activities (Opiyo & Nzuve, 2021).
 
 ### **Traditional Solutions Fall Short:**
 
@@ -510,6 +510,9 @@ Champion Model:   Seed 789 (highest final reward)
 | **Reproducibility** |
 | Seeds Tested | 1 | 1 | 1 | 1 | 1 | 1 | 1 (random) | **5 explicit** |
 | CV | N/A | N/A | N/A | N/A | N/A | N/A | N/A | **1.3%**  |
+
+> **Key Takeaway:**  
+> Simple architecture [64,64] + 6:1 reward ratio + 200K steps = optimal. Deep networks [128,64,32] overfitted. Multi-seed (Run 8) proved reproducibility.
 
 ### Table 3: Performance Metrics Comparison
 
