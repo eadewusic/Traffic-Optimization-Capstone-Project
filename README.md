@@ -54,7 +54,7 @@ Implement a **Deep Reinforcement Learning agent** that:
 - Comprehensive hyperparameter optimization across 17 configurations
 - Tested 4 algorithm families: PPO, DQN, A2C, SAC as seen [here](https://github.com/eadewusic/Eunice_Adewusi_RL_Summative)
 
-- Custom simulation environment: SimpleButtonTrafficEnv (4-lane intersection)
+- Custom Python-based simulation environment: SimpleButtonTrafficEnv (4-lane intersection) which later evolved to Run7TrafficEnv in retraining runs using the Gymnasium/Gym interface
 - PPO emerged as best performer
 - Identified optimal reward ratio (6:1 throughput:queue)
 
