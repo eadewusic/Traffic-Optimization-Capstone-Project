@@ -109,15 +109,19 @@ class FirebaseUploader:
 
         print(f"\n[FIREBASE] Uploading run: {run_name}")
 
-        for filename in os.listdir(run_folder):
-            local_path = os.path.join(run_folder, filename)
-
-            if os.path.isfile(local_path):
-                remote_path = f"deployments/{run_name}/{filename}"
+        # Walk through all files in the run directory and subdirectories
+        for root, dirs, files in os.walk(run_folder):
+            for filename in files:
+                local_path = os.path.join(root, filename)
+                
+                # Create relative path for Firebase storage
+                relative_path = os.path.relpath(local_path, run_folder)
+                remote_path = f"deployments/{run_name}/{relative_path}"
+                
                 url = self.upload_file(local_path, remote_path)
 
                 if url:
-                    uploaded_files[filename] = url
+                    uploaded_files[relative_path] = url
 
         if uploaded_files:
             print(f"[FIREBASE] Successfully uploaded {len(uploaded_files)} files")

@@ -35,7 +35,7 @@ NEW CHANGES (v2.0):
    - Shows validation metrics
    - Multi-seed champion context
 
-FIXED BUGS (v2.1):
+FIXED BUGS:
 1. Duration logic for Mode 2 - Now runs full 60s across multiple sessions
 2. Path handling - Mode 1 uses session subfolders, Mode 2/3 use direct paths
 3. Comparison analysis - Generates comparison_analysis.txt file
@@ -123,6 +123,77 @@ class TerminalCapture:
     
     def get_output(self):
         return ''.join(self.log)
+
+
+class ButtonRecorder:
+    """Records button presses with timestamps for replay in comparison mode"""
+    def __init__(self):
+        self.recordings = []
+        self.start_time = None
+    
+    def start_recording(self):
+        """Start recording session"""
+        self.recordings = []
+        self.start_time = time.time()
+    
+    def record_press(self, direction):
+        """Record a button press with timestamp"""
+        if self.start_time is None:
+            return
+        
+        elapsed = time.time() - self.start_time
+        self.recordings.append({
+            'direction': direction,
+            'timestamp': elapsed
+        })
+    
+    def get_recordings(self):
+        """Return all recorded button presses"""
+        return self.recordings
+    
+    def save_to_file(self, filepath):
+        """Save recordings to JSON file"""
+        with open(filepath, 'w') as f:
+            json.dump({
+                'recordings': self.recordings,
+                'total_presses': len(self.recordings),
+                'duration': self.recordings[-1]['timestamp'] if self.recordings else 0
+            }, f, indent=2)
+
+
+class ButtonReplayer:
+    """Replays recorded button presses for comparison mode"""
+    def __init__(self, recordings):
+        self.recordings = recordings
+        self.start_time = None
+        self.current_index = 0
+    
+    def start_replay(self):
+        """Start replay session"""
+        self.start_time = time.time()
+        self.current_index = 0
+    
+    def get_due_presses(self):
+        """Get all button presses that should have occurred by now"""
+        if self.start_time is None or not self.recordings:
+            return []
+        
+        elapsed = time.time() - self.start_time
+        due_presses = []
+        
+        while self.current_index < len(self.recordings):
+            press = self.recordings[self.current_index]
+            if press['timestamp'] <= elapsed:
+                due_presses.append(press['direction'])
+                self.current_index += 1
+            else:
+                break
+        
+        return due_presses
+    
+    def has_more(self):
+        """Check if there are more presses to replay"""
+        return self.current_index < len(self.recordings)
 
 
 # Configuration
@@ -385,9 +456,10 @@ class DataLogger:
 class PPOController:
     """PPO-based controller"""
 
-    def __init__(self, model_path, vecnorm_path, logger):
+    def __init__(self, model_path, vecnorm_path, logger, button_replayer=None):
         self.logger = logger
         self.max_queue_length = 20
+        self.button_replayer = button_replayer  # For replay in comparison mode
 
         # Load PPO model with confirmation
         print("[LOADING] PPO model...", end=" ")
@@ -410,11 +482,11 @@ class PPOController:
         self.vehicles_cleared = 0
         self.phase_changes = 0
         self.yellow_transitions = 0
-        
+
         # Session tracking
         self.session_start = None
         self.session_step = 0
-        
+
         # Mode tracking
         self.mode_start_time = None  # For timed modes
 
@@ -433,7 +505,30 @@ class PPOController:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     def read_buttons(self, show_press=False):
-        """Read buttons with optional display"""
+        """Read buttons with optional display
+
+        In replay mode, processes recorded button presses instead of hardware
+        """
+        # REPLAY MODE: Process recorded presses
+        if self.button_replayer:
+            due_presses = self.button_replayer.get_due_presses()
+
+            for direction in due_presses:
+                lane_map = {'north': 0, 'south': 1, 'east': 2, 'west': 3}
+                lane = lane_map[direction]
+
+                if self.queues[lane] < self.max_queue_length:
+                    self.queues[lane] += 1
+                    self.button_presses[direction] += 1
+
+                    if show_press:
+                        print(f"  >> {direction.upper()} button (REPLAY) | "
+                              f"Queues now: N={int(self.queues[0])} E={int(self.queues[2])} "
+                              f"S={int(self.queues[1])} W={int(self.queues[3])}")
+
+            return [d.capitalize() for d in due_presses]
+
+        # MANUAL MODE: Read hardware buttons
         current_time = time.time()
         pressed_buttons = []
 
@@ -571,34 +666,44 @@ class PPOController:
 
     def run(self, duration=None, terminal_capture=None, use_session_folders=True):
         """Run controller with continuous multi-session operation
-        
+
         Args:
             duration: If None, runs until Ctrl+C (Mode 1). If set, runs for duration seconds (Mode 2)
             terminal_capture: TerminalCapture object for logging
-            use_session_folders: If True, creates session_N subfolders (Mode 1). 
+            use_session_folders: If True, creates session_N subfolders (Mode 1).
                                If False, saves directly to run folder (Mode 2)
-        
+
         System hibernates after clearing all lanes, then wakes for next session.
         Only stops on Ctrl+C or duration timeout (if specified).
         """
         session_number = 0
         session_has_data = False  # Track if current session processed any traffic
-        
+
         # Track overall mode duration (for Mode 2)
         if duration:
             self.mode_start_time = datetime.now()
-        
+
         try:
             while True:
-                # FIXED BUG #1: Check mode duration (not session duration) for timed mode
+                # Check mode duration (not session duration) for timed mode
                 if duration and self.mode_start_time:
                     mode_elapsed = (datetime.now() - self.mode_start_time).total_seconds()
                     if mode_elapsed >= duration:
                         print(f"\n[TIMEOUT] {duration}s mode duration reached\n")
                         break
-                
+
                 # IDLE MODE: Wait for first car
                 if np.sum(self.queues) == 0:
+                    # In replay mode, skip idle wait - just start processing
+                    if self.button_replayer:
+                        if session_number == 0:
+                            session_number = 1
+                            self.session_start = datetime.now()
+                            self.session_step = 0
+                            print("[START] Session 1 beginning (REPLAY MODE)...\n")
+                            time.sleep(0.5)
+                            continue  # Skip to active mode
+
                     if session_number == 0:
                         print("[IDLE] Press any button to start...\n")
                     else:
@@ -606,11 +711,11 @@ class PPOController:
                         if session_has_data:
                             self.save_session_logs(terminal_capture, session_number, use_session_folders)
                             print(f"\n[HIBERNATE] Session {session_number} complete. Waiting for next vehicle...\n")
-                        
+
                         # Reset for next session
                         session_has_data = False
                         self.reset_session_metrics()
-                    
+
                     # Wait for button press to start/resume
                     while np.sum(self.queues) == 0:
                         # Check timeout even while idle
@@ -621,20 +726,20 @@ class PPOController:
                                 # Save empty stats before exiting
                                 self.save_empty_stats(use_session_folders)
                                 return  # Exit completely
-                        
+
                         self.read_buttons(show_press=True)
                         time.sleep(0.1)
-                    
+
                     # Session starting
                     session_number += 1
                     self.session_start = datetime.now()
                     self.session_step = 0
-                    
+
                     if session_number == 1:
                         print("[START] Session 1 beginning...\n")
                     else:
                         print(f"[WAKE] Session {session_number} starting...\n")
-                    
+
                     time.sleep(0.5)
 
                 # ACTIVE MODE: Control traffic
@@ -673,7 +778,7 @@ class PPOController:
                 phase_name = "N/S" if action == 0 else "E/W"
                 switch = " [SWITCH]" if phase_change else ""
                 warning = f" <<{inefficiency_msg}>>" if (is_inefficient and SHOW_INEFFICIENCY_WARNINGS) else ""
-                
+
                 # Add system metrics to display if available
                 sys_str = ""
                 if sys_metrics['ram_mb'] is not None:
@@ -715,7 +820,7 @@ class PPOController:
 
     def save_session_logs(self, terminal_capture, session_number, use_session_folders):
         """Save logs for completed session
-        
+
         Args:
             terminal_capture: TerminalCapture object
             session_number: Current session number
@@ -723,8 +828,8 @@ class PPOController:
         """
         if len(self.logger.data) == 0:
             return
-        
-        # FIXED BUG #2: Use appropriate path based on mode
+
+        # Use appropriate path based on mode
         if use_session_folders:
             # Mode 1: Create session subfolder
             session_folder = self.logger.set_session_paths(session_number)
@@ -732,9 +837,9 @@ class PPOController:
             # Mode 2/3: Save directly to run folder
             self.logger.set_direct_paths()
             session_folder = self.logger.run_folder
-        
+
         session_end = datetime.now()
-        
+
         # Summary
         print("="*70)
         print(f"SESSION {session_number} COMPLETE")
@@ -782,7 +887,7 @@ class PPOController:
             ram_values = [m['ram_mb'] for m in self.logger.system_metrics if m['ram_mb'] is not None]
             cpu_values = [m['cpu_percent'] for m in self.logger.system_metrics if m['cpu_percent'] is not None]
             temp_values = [m['cpu_temp'] for m in self.logger.system_metrics if m['cpu_temp'] is not None]
-            
+
             stats['system_metrics'] = {
                 'mean_ram_mb': np.mean(ram_values) if ram_values else None,
                 'peak_ram_mb': np.max(ram_values) if ram_values else None,
@@ -794,7 +899,7 @@ class PPOController:
 
         print(f"\n[SAVED] {session_folder}")
         self.logger.save_all(stats)
-        
+
         # Save terminal output
         if terminal_capture:
             self.logger.save_terminal_output(terminal_capture)
@@ -802,7 +907,7 @@ class PPOController:
 
     def save_empty_stats(self, use_session_folders):
         """Save minimal stats when timeout occurs with no traffic (idle timeout)
-        
+
         This ensures stats.json exists even if no vehicles arrived
         """
         # Set paths appropriately
@@ -811,7 +916,7 @@ class PPOController:
         else:
             self.logger.set_direct_paths()
             session_folder = self.logger.run_folder
-        
+
         # Create minimal stats
         stats = {
             'controller': 'PPO-Run8-Seed789',
@@ -829,11 +934,11 @@ class PPOController:
             'yellow_transitions': 0,
             'note': 'Timeout occurred with no traffic - idle state'
         }
-        
+
         # Save just the JSON (no CSV/viz since no data)
         with open(self.logger.json_path, 'w') as f:
             json.dump(stats, f, indent=2)
-        
+
         print(f"[SAVED] Empty stats to {session_folder}")
 
 
@@ -844,10 +949,11 @@ class PPOController:
 class FixedTimingController:
     """Fixed-timing baseline for comparison"""
 
-    def __init__(self, logger, cycle_time=10):
+    def __init__(self, logger, cycle_time=10, button_recorder=None):
         self.logger = logger
         self.max_queue_length = 20
         self.cycle_time = cycle_time
+        self.button_recorder = button_recorder  # For recording in comparison mode
 
         self.queues = np.zeros(4, dtype=np.float32)
         self.current_phase = 0
@@ -886,6 +992,10 @@ class FixedTimingController:
                         self.queues[lane] += 1
                         self.button_presses[direction] += 1
                         pressed_buttons.append(direction.capitalize())
+
+                        # Record press if recorder is active
+                        if self.button_recorder:
+                            self.button_recorder.record_press(direction)
 
                         if show_press:
                             print(f"  >> {direction.upper()} button | "
@@ -962,7 +1072,12 @@ class FixedTimingController:
         self.phase_start_time = time.time()
 
         try:
-            while (datetime.now() - session_start).total_seconds() < duration:
+            while True:
+                # Check timeout BEFORE processing step
+                elapsed = (datetime.now() - session_start).total_seconds()
+                if elapsed >= duration:
+                    print(f"\n[TIMEOUT] {duration}s duration reached\n")
+                    break
                 step += 1
 
                 # Check if time to switch
@@ -994,9 +1109,15 @@ class FixedTimingController:
                       f"S={int(self.queues[1])} W={int(self.queues[3])} | "
                       f"Total: {int(np.sum(self.queues)):2d}")
 
-                # Poll buttons
+                # Poll buttons with timeout check
                 delay_start = time.time()
                 while time.time() - delay_start < DEMO_DELAY:
+                    # Check if we're approaching timeout
+                    elapsed = (datetime.now() - session_start).total_seconds()
+                    if elapsed >= duration:
+                        print(f"\n[TIMEOUT] Reached during delay\n")
+                        raise KeyboardInterrupt  # Use interrupt to exit cleanly
+
                     self.read_buttons(show_press=True)
                     time.sleep(0.1)
 
@@ -1023,10 +1144,10 @@ class FixedTimingController:
             print(f"Final queue: N={int(self.queues[0])} E={int(self.queues[2])} "
                   f"S={int(self.queues[1])} W={int(self.queues[3])}")
 
-            # Save - FIXED BUG #2: Use direct paths for comparison mode
+            # Use direct paths for comparison mode
             if len(self.logger.data) > 0:
                 self.logger.set_direct_paths()
-                
+
                 stats = {
                     'controller': 'Fixed-Timing',
                     'session_start': session_start.isoformat(),
@@ -1051,26 +1172,52 @@ class FixedTimingController:
 
 def run_comparison(model_path, vecnorm_path, duration=60):
     """Run comparison: Fixed-timing then PPO
-    
-    FIXED BUG #3: Now generates comparison_analysis.txt file
+
+    Now generates comparison_analysis.txt file
+    Uses record/replay for fair comparison with identical traffic
     """
     print("\n" + "="*70)
-    print("COMPARISON MODE")
+    print("COMPARISON MODE (RECORD & REPLAY)")
     print("="*70)
-    print(f"Duration: {duration}s per test\n")
+    print(f"Duration: {duration}s per test")
+    print("\nPhase 1: Fixed-Timing will RECORD your button presses")
+    print("Phase 2: PPO will REPLAY the exact same presses")
+    print("This ensures fair comparison on identical traffic!\n")
 
-    # Test 1: Fixed-timing
-    print("[TEST 1/2] FIXED-TIMING BASELINE")
+    # Create button recorder
+    recorder = ButtonRecorder()
+
+    # Test 1: Fixed-timing with recording
+    print("[TEST 1/2] FIXED-TIMING BASELINE (RECORDING)")
     input("Press ENTER when ready...\n")
 
     logger_fixed = DataLogger("fixed_timing")
-    controller_fixed = FixedTimingController(logger_fixed)
+    controller_fixed = FixedTimingController(logger_fixed, button_recorder=recorder)
+
+    # Start recording
+    recorder.start_recording()
+    print("[RECORDING] All button presses will be recorded...\n")
 
     try:
         controller_fixed.run(duration=duration)
     finally:
         controller_fixed.cleanup()
-    
+
+    # Get recordings
+    recordings = recorder.get_recordings()
+    print(f"\n[RECORDED] {len(recordings)} button presses captured")
+
+    # Save recordings to file
+    recording_path = os.path.join(logger_fixed.run_folder, "button_recordings.json")
+    recorder.save_to_file(recording_path)
+    print(f"[SAVED] Recording: {recording_path}")
+
+    if len(recordings) == 0:
+        print("\n[ERROR] No button presses recorded!")
+        print("Comparison cannot proceed without traffic data.")
+        print("Please run again and press buttons during Fixed-Timing test.\n")
+        return
+
     # Extract stats from fixed-timing
     stats_fixed_path = os.path.join(logger_fixed.run_folder, "stats.json")
     with open(stats_fixed_path, 'r') as f:
@@ -1079,102 +1226,126 @@ def run_comparison(model_path, vecnorm_path, duration=60):
     print("\n[PAUSE] 5 seconds...\n")
     time.sleep(5)
 
-    # Test 2: PPO
-    print("[TEST 2/2] PPO AGENT")
+    # Test 2: PPO with replay
+    print("[TEST 2/2] PPO AGENT (REPLAYING)")
+    print("DO NOT press buttons - they will be replayed automatically!")
     input("Press ENTER when ready...\n")
 
     logger_ppo = DataLogger("ppo_run8_seed789")
-    controller_ppo = PPOController(model_path, vecnorm_path, logger_ppo)
+
+    # Create replayer from recordings
+    replayer = ButtonReplayer(recordings)
+    controller_ppo = PPOController(model_path, vecnorm_path, logger_ppo, button_replayer=replayer)
+
+    # Start replay
+    replayer.start_replay()
+    print(f"[REPLAYING] {len(recordings)} button presses will be replayed automatically...")
+    print("Watch as the exact same traffic pattern is processed!\n")
 
     try:
         # Use direct paths for comparison mode (no session subfolders)
+        # PPO will start immediately (no idle wait) and process replayed buttons
         controller_ppo.run(duration=duration, use_session_folders=False)
     finally:
         controller_ppo.cleanup()
-    
+
     # Extract stats from PPO
     stats_ppo_path = os.path.join(logger_ppo.run_folder, "stats.json")
-    
+
     # Check if stats file exists
     if not os.path.exists(stats_ppo_path):
-        print("\n[ERROR] PPO stats file not found - likely timed out with no traffic")
-        print("Cannot generate comparison analysis without PPO data.\n")
+        print("\n[ERROR] PPO stats file not found")
+        print("This shouldn't happen with replay mode, but comparison cannot proceed.\n")
         return
-    
+
     with open(stats_ppo_path, 'r') as f:
         stats_ppo = json.load(f)
-    
+
     # Check if PPO had any traffic
     if stats_ppo.get('total_arrivals', 0) == 0:
-        print("\n[WARNING] PPO had no traffic arrivals - comparison may not be meaningful")
+        print("\n[WARNING] PPO had no traffic arrivals despite replay")
+        print("This indicates a replay system malfunction.\n")
 
     print("\n[COMPLETE] Comparison finished\n")
-    
-    # FIXED BUG #3: Generate comparison analysis file
+
+    # Generate comparison analysis file
     generate_comparison_analysis(logger_fixed.run_folder, logger_ppo.run_folder,
-                                stats_fixed, stats_ppo, duration)
+                                stats_fixed, stats_ppo, duration, len(recordings))
 
 
-def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_ppo, duration):
+def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_ppo, duration, num_recordings=0):
     """Generate comparison_analysis.txt file comparing both controllers
-    
-    FIXED BUG #3: This function was missing entirely
+
+    This function was missing entirely
+    Now includes information about record/replay system
     """
     # Create comparison folder
     results_dir = '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results'
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     comparison_file = os.path.join(results_dir, f"comparison_analysis_{timestamp}.txt")
-    
+
     # Build comparison text
     lines = []
     lines.append("="*70)
     lines.append("COMPARISON ANALYSIS: FIXED-TIMING vs PPO RUN 8 SEED 789")
     lines.append("="*70)
     lines.append(f"\nComparison Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    lines.append(f"Duration: {duration}s per controller\n")
-    
+    lines.append(f"Duration: {duration}s per controller")
+    lines.append(f"Method: RECORD & REPLAY (identical traffic)")
+    if num_recordings > 0:
+        lines.append(f"Recorded Presses: {num_recordings} button events")
+    lines.append("")
+
     lines.append("\nTest Folders:")
     lines.append(f"  Fixed-Timing: {fixed_folder}")
     lines.append(f"  PPO Agent:    {ppo_folder}\n")
-    
+
+    lines.append("="*70)
+    lines.append("FAIR COMPARISON METHODOLOGY")
+    lines.append("="*70)
+    lines.append("\n✓ Phase 1: Fixed-Timing recorded all button presses with timestamps")
+    lines.append("✓ Phase 2: PPO replayed the EXACT same button presses")
+    lines.append("✓ Result: Both controllers processed IDENTICAL traffic patterns")
+    lines.append("✓ This ensures a scientifically valid performance comparison\n")
+
     lines.append("="*70)
     lines.append("PERFORMANCE METRICS")
     lines.append("="*70)
-    
+
     # Throughput comparison
     lines.append("\n1. THROUGHPUT")
     total_fixed = stats_fixed['total_arrivals']
     cleared_fixed = stats_fixed['vehicles_cleared']
     throughput_fixed = cleared_fixed / max(total_fixed, 1) * 100
-    
+
     total_ppo = stats_ppo.get('total_arrivals', 0)
     cleared_ppo = stats_ppo.get('vehicles_cleared', 0)
     throughput_ppo = cleared_ppo / max(total_ppo, 1) * 100 if total_ppo > 0 else 0
-    
+
     lines.append(f"  Fixed-Timing: {cleared_fixed}/{total_fixed} ({throughput_fixed:.1f}%)")
-    
+
     if total_ppo == 0:
         lines.append(f"  PPO Agent:    0/0 (no traffic - timed out while idle)")
         lines.append(f"  Note: PPO had no arrivals, comparison not meaningful")
     else:
         lines.append(f"  PPO Agent:    {cleared_ppo}/{total_ppo} ({throughput_ppo:.1f}%)")
-        
+
         if total_fixed > 0:
             diff = cleared_ppo - cleared_fixed
             lines.append(f"  Difference:   {diff:+d} cars ({diff/max(total_fixed,1)*100:+.1f}%)")
-    
+
     # Phase changes comparison
     lines.append("\n2. ADAPTABILITY (Phase Changes)")
     lines.append(f"  Fixed-Timing: {stats_fixed['phase_changes']} changes")
     lines.append(f"  PPO Agent:    {stats_ppo['phase_changes']} changes")
-    
+
     # Average phase duration
     avg_phase_fixed = stats_fixed['duration_seconds'] / max(stats_fixed['phase_changes'], 1)
     avg_phase_ppo = stats_ppo['duration_seconds'] / max(stats_ppo['phase_changes'], 1)
     lines.append("\n3. AVERAGE PHASE DURATION")
     lines.append(f"  Fixed-Timing: {avg_phase_fixed:.2f}s per phase")
     lines.append(f"  PPO Agent:    {avg_phase_ppo:.2f}s per phase")
-    
+
     # Final queue states
     lines.append("\n4. FINAL QUEUE STATES")
     lines.append(f"  Fixed-Timing: N={int(stats_fixed['final_queues'][0])} "
@@ -1185,7 +1356,7 @@ def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_pp
                 f"E={int(stats_ppo['final_queues'][2])} "
                 f"S={int(stats_ppo['final_queues'][1])} "
                 f"W={int(stats_ppo['final_queues'][3])}")
-    
+
     # Inference time (PPO only)
     if 'inference_times' in stats_ppo:
         lines.append("\n5. PPO DECISION SPEED")
@@ -1194,11 +1365,11 @@ def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_pp
         lines.append(f"  Max:  {inf['max_ms']:.2f}ms")
         lines.append(f"  Min:  {inf['min_ms']:.2f}ms")
         lines.append(f"  Real-time capability: {1000/inf['mean_ms']:.0f}× faster than human reaction")
-    
+
     lines.append("\n" + "="*70)
     lines.append("CONCLUSION")
     lines.append("="*70)
-    
+
     # Determine winner - handle empty PPO case
     if total_ppo == 0:
         lines.append("\n⚠ PPO timed out with no traffic")
@@ -1210,25 +1381,25 @@ def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_pp
         lines.append(f"\n✓ Fixed-Timing cleared {cleared_fixed - cleared_ppo} more vehicles")
     else:
         lines.append("\n= Both controllers achieved equal throughput")
-    
+
     lines.append("\nModel Information:")
     lines.append("  Champion: Run 8 Seed 789 (best of 5 seeds)")
     lines.append("  Validation: 72% win rate, p=0.0002")
     lines.append("  Reproducibility: CV = 1.3%")
-    
+
     lines.append("\n" + "="*70)
     lines.append("END OF COMPARISON")
     lines.append("="*70)
-    
+
     # Write to file
     with open(comparison_file, 'w') as f:
         f.write('\n'.join(lines))
-    
+
     # Also print to terminal
     print("\n")
     for line in lines:
         print(line)
-    
+
     print(f"\n[SAVED] Comparison analysis: {comparison_file}\n")
 
 
@@ -1293,7 +1464,7 @@ def main():
             controller.cleanup()
 
     elif choice == '2':
-        # Mode 2: Timed, uses direct paths (FIXED BUG #1 and #2)
+        # Mode 2: Timed, uses direct paths
         logger = DataLogger("ppo_timed")
         controller = PPOController(MODEL_PATH, VECNORM_PATH, logger)
         try:
@@ -1302,7 +1473,7 @@ def main():
             controller.cleanup()
 
     elif choice == '3':
-        # Mode 3: Comparison, uses direct paths and generates comparison file (FIXED BUG #2 and #3)
+        # Mode 3: Comparison, uses direct paths and generates comparison file
         run_comparison(MODEL_PATH, VECNORM_PATH, duration=60)
 
     elif choice.lower() in ['q', 'quit']:
@@ -1310,7 +1481,7 @@ def main():
 
     else:
         print("[ERROR] Invalid choice")
-    
+
     # Restore stdout
     sys.stdout = terminal_capture.terminal
 
