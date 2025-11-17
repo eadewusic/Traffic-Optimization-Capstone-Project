@@ -35,11 +35,6 @@ NEW CHANGES (v2.0):
    - Shows validation metrics
    - Multi-seed champion context
 
-FIXED BUGS (v2.1):
-1. Duration logic for Mode 2 - Now runs full 60s across multiple sessions
-2. Path handling - Mode 1 uses session subfolders, Mode 2/3 use direct paths
-3. Comparison analysis - Generates comparison_analysis.txt file
-
 Key Components:
 Hardware Control:
     - 12 GPIO pins for traffic LEDs (3 per direction: red, yellow, green)
@@ -590,7 +585,7 @@ class PPOController:
         
         try:
             while True:
-                # FIXED BUG #1: Check mode duration (not session duration) for timed mode
+                # Check mode duration (not session duration) for timed mode
                 if duration and self.mode_start_time:
                     mode_elapsed = (datetime.now() - self.mode_start_time).total_seconds()
                     if mode_elapsed >= duration:
@@ -724,7 +719,7 @@ class PPOController:
         if len(self.logger.data) == 0:
             return
         
-        # FIXED BUG #2: Use appropriate path based on mode
+        # Use appropriate path based on mode
         if use_session_folders:
             # Mode 1: Create session subfolder
             session_folder = self.logger.set_session_paths(session_number)
@@ -1023,7 +1018,7 @@ class FixedTimingController:
             print(f"Final queue: N={int(self.queues[0])} E={int(self.queues[2])} "
                   f"S={int(self.queues[1])} W={int(self.queues[3])}")
 
-            # Save - FIXED BUG #2: Use direct paths for comparison mode
+            # Use direct paths for comparison mode
             if len(self.logger.data) > 0:
                 self.logger.set_direct_paths()
                 
@@ -1052,7 +1047,7 @@ class FixedTimingController:
 def run_comparison(model_path, vecnorm_path, duration=60):
     """Run comparison: Fixed-timing then PPO
     
-    FIXED BUG #3: Now generates comparison_analysis.txt file
+    Now generates comparison_analysis.txt file
     """
     print("\n" + "="*70)
     print("COMPARISON MODE")
@@ -1110,7 +1105,7 @@ def run_comparison(model_path, vecnorm_path, duration=60):
 
     print("\n[COMPLETE] Comparison finished\n")
     
-    # FIXED BUG #3: Generate comparison analysis file
+    # Generate comparison analysis file
     generate_comparison_analysis(logger_fixed.run_folder, logger_ppo.run_folder,
                                 stats_fixed, stats_ppo, duration)
 
@@ -1118,7 +1113,7 @@ def run_comparison(model_path, vecnorm_path, duration=60):
 def generate_comparison_analysis(fixed_folder, ppo_folder, stats_fixed, stats_ppo, duration):
     """Generate comparison_analysis.txt file comparing both controllers
     
-    FIXED BUG #3: This function was missing entirely
+    This function was missing entirely
     """
     # Create comparison folder
     results_dir = '/home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results'
@@ -1270,14 +1265,21 @@ def main():
         print("  Install: pip install psutil --break-system-packages")
     print()
 
-    # Mode selection
-    print("SELECT MODE:")
-    print("  1. PPO Event-Driven (runs until clear)")
-    print("  2. PPO Timed (60s)")
-    print("  3. Comparison (Fixed-Timing vs PPO, 60s each)")
-    print("  q. Quit\n")
+    # Mode selection with input validation loop
+    while True:
+        print("SELECT MODE:")
+        print("  1. PPO Event-Driven (runs until clear)")
+        print("  2. PPO Timed (60s)")
+        print("  3. Comparison (Fixed-Timing vs PPO, 60s each)")
+        print("  q. Quit\n")
 
-    choice = input("Choice: ").strip()
+        choice = input("Choice: ").strip()
+        
+        # Validate choice
+        if choice in ['1', '2', '3', 'q', 'Q', 'quit', 'Quit', 'QUIT']:
+            break
+        else:
+            print("\n[ERROR] Invalid choice. Please enter 1, 2, 3, or q\n")
 
     # Start terminal capture
     terminal_capture = TerminalCapture()
@@ -1293,7 +1295,7 @@ def main():
             controller.cleanup()
 
     elif choice == '2':
-        # Mode 2: Timed, uses direct paths (FIXED BUG #1 and #2)
+        # Mode 2: Timed, uses direct paths
         logger = DataLogger("ppo_timed")
         controller = PPOController(MODEL_PATH, VECNORM_PATH, logger)
         try:
@@ -1302,15 +1304,12 @@ def main():
             controller.cleanup()
 
     elif choice == '3':
-        # Mode 3: Comparison, uses direct paths and generates comparison file (FIXED BUG #2 and #3)
+        # Mode 3: Comparison, uses direct paths and generates comparison file
         run_comparison(MODEL_PATH, VECNORM_PATH, duration=60)
 
     elif choice.lower() in ['q', 'quit']:
         print("[EXIT]")
 
-    else:
-        print("[ERROR] Invalid choice")
-    
     # Restore stdout
     sys.stdout = terminal_capture.terminal
 

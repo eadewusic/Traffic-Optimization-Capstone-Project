@@ -1,0 +1,10 @@
+======================================================================
+Fixed-Timing DEPLOYMENT REPORT
+======================================================================
+
+Duration: 60.1s
+Steps: 11
+Cars arrived: 40
+Cars cleared: 32
+Throughput: 80.0%
+Phase changes: 5

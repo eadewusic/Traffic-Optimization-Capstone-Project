@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-10-25 20:29:04",
+  "controller": "PPO_Run7",
+  "duration_seconds": 62.458353757858276,
+  "total_steps": 23,
+  "vehicles_cleared": 21,
+  "phase_changes": 8,
+  "yellow_transitions": 8,
+  "yellow_duration_seconds": 2.0,
+  "button_presses": {
+    "north": 4,
+    "south": 6,
+    "east": 8,
+    "west": 4
+  },
+  "final_queues": [
+    0.0,
+    0.0,
+    1.0,
+    0.0
+  ],
+  "inference_times": {
+    "mean_ms": 16.847216564676035,
+    "max_ms": 239.49074745178223,
+    "min_ms": 5.663633346557617,
+    "std_ms": 47.49978774642881,
+    "real_time_capable": false
+  }
+}

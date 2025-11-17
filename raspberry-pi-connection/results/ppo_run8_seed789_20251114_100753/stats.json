@@ -1,0 +1,40 @@
+{
+  "controller": "PPO-Run8-Seed789",
+  "session_number": 2,
+  "session_start": "2025-11-14T10:07:57.460755",
+  "session_end": "2025-11-14T10:08:57.176040",
+  "duration_seconds": 59.715285,
+  "total_steps": 10,
+  "total_arrivals": 40,
+  "vehicles_cleared": 33,
+  "throughput_percent": 82.5,
+  "button_presses": {
+    "north": 10,
+    "south": 10,
+    "east": 9,
+    "west": 11
+  },
+  "final_queues": [
+    2.0,
+    1.0,
+    1.0,
+    3.0
+  ],
+  "phase_changes": 4,
+  "yellow_transitions": 4,
+  "inference_times": {
+    "mean_ms": 5.7876719009072986,
+    "std_ms": 0.36951255162998764,
+    "min_ms": 5.280078999930993,
+    "max_ms": 6.789892999222502,
+    "median_ms": 5.701558999135159
+  },
+  "system_metrics": {
+    "mean_ram_mb": 358.953125,
+    "peak_ram_mb": 358.953125,
+    "mean_cpu_percent": 0.0,
+    "peak_cpu_percent": 0.0,
+    "mean_temp": 33.080000000000005,
+    "peak_temp": 34.0
+  }
+}

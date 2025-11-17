@@ -1,0 +1,134 @@
+{
+  "recordings": [
+    {
+      "direction": "south",
+      "timestamp": 2.603968858718872
+    },
+    {
+      "direction": "south",
+      "timestamp": 3.0047006607055664
+    },
+    {
+      "direction": "east",
+      "timestamp": 4.105999708175659
+    },
+    {
+      "direction": "east",
+      "timestamp": 4.40657639503479
+    },
+    {
+      "direction": "north",
+      "timestamp": 5.608910322189331
+    },
+    {
+      "direction": "north",
+      "timestamp": 5.909588813781738
+    },
+    {
+      "direction": "west",
+      "timestamp": 6.911568641662598
+    },
+    {
+      "direction": "west",
+      "timestamp": 7.212449789047241
+    },
+    {
+      "direction": "south",
+      "timestamp": 9.416753768920898
+    },
+    {
+      "direction": "south",
+      "timestamp": 9.717822790145874
+    },
+    {
+      "direction": "south",
+      "timestamp": 16.627624988555908
+    },
+    {
+      "direction": "south",
+      "timestamp": 17.229713201522827
+    },
+    {
+      "direction": "west",
+      "timestamp": 19.333579063415527
+    },
+    {
+      "direction": "west",
+      "timestamp": 19.63470697402954
+    },
+    {
+      "direction": "west",
+      "timestamp": 19.935775756835938
+    },
+    {
+      "direction": "east",
+      "timestamp": 21.639169931411743
+    },
+    {
+      "direction": "east",
+      "timestamp": 21.93997025489807
+    },
+    {
+      "direction": "north",
+      "timestamp": 30.3529269695282
+    },
+    {
+      "direction": "north",
+      "timestamp": 30.854015588760376
+    },
+    {
+      "direction": "north",
+      "timestamp": 31.355247259140015
+    },
+    {
+      "direction": "south",
+      "timestamp": 40.06806254386902
+    },
+    {
+      "direction": "south",
+      "timestamp": 40.46896934509277
+    },
+    {
+      "direction": "east",
+      "timestamp": 41.972453594207764
+    },
+    {
+      "direction": "east",
+      "timestamp": 42.473623752593994
+    },
+    {
+      "direction": "west",
+      "timestamp": 44.47856330871582
+    },
+    {
+      "direction": "west",
+      "timestamp": 44.77934288978577
+    },
+    {
+      "direction": "south",
+      "timestamp": 49.48569893836975
+    },
+    {
+      "direction": "south",
+      "timestamp": 49.78649115562439
+    },
+    {
+      "direction": "north",
+      "timestamp": 54.095613956451416
+    },
+    {
+      "direction": "north",
+      "timestamp": 54.39632225036621
+    },
+    {
+      "direction": "south",
+      "timestamp": 57.70189690589905
+    },
+    {
+      "direction": "south",
+      "timestamp": 58.002845287323
+    }
+  ],
+  "total_presses": 32,
+  "duration": 58.002845287323
+}

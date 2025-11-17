@@ -1,0 +1,64 @@
+[LOADING] PPO model... ✓
+[LOADING] VecNormalize statistics... ✓
+[READY] PPO controller initialized
+
+[IDLE] Press any button to start...
+
+  >> SOUTH button pressed | Queues now: N=0 E=0 S=1 W=0
+[START] Session 1 beginning...
+
+[STEP   1] N/S Green           | Clear:  1 | Queue: N=0 E=0 S=0 W=0 | Total:  0 | Infer: 8.95ms | RAM: 350.0MB CPU: 0.0% Temp: 34.5°C
+  >> SOUTH button pressed | Queues now: N=0 E=0 S=1 W=0
+  >> WEST button pressed | Queues now: N=0 E=0 S=1 W=1
+  >> WEST button pressed | Queues now: N=0 E=0 S=1 W=2
+  >> EAST button pressed | Queues now: N=0 E=1 S=1 W=2
+  >> EAST button pressed | Queues now: N=0 E=2 S=1 W=2
+[STEP   2] E/W Green [SWITCH]  | Clear:  4 | Queue: N=0 E=0 S=1 W=0 | Total:  1 | Infer: 6.06ms | RAM: 350.0MB CPU: 0.0% Temp: 33.6°C
+  >> WEST button pressed | Queues now: N=0 E=0 S=1 W=1
+  >> WEST button pressed | Queues now: N=0 E=0 S=1 W=2
+  >> NORTH button pressed | Queues now: N=1 E=0 S=1 W=2
+[STEP   3] N/S Green [SWITCH]  | Clear:  2 | Queue: N=0 E=0 S=0 W=2 | Total:  2 | Infer: 6.03ms | RAM: 350.0MB CPU: 0.0% Temp: 33.1°C
+  >> EAST button pressed | Queues now: N=0 E=1 S=0 W=2
+  >> EAST button pressed | Queues now: N=0 E=2 S=0 W=2
+  >> SOUTH button pressed | Queues now: N=0 E=2 S=1 W=2
+[STEP   4] E/W Green [SWITCH]  | Clear:  4 | Queue: N=0 E=0 S=1 W=0 | Total:  1 | Infer: 5.11ms | RAM: 350.0MB CPU: 0.0% Temp: 32.6°C
+  >> NORTH button pressed | Queues now: N=1 E=0 S=1 W=0
+  >> NORTH button pressed | Queues now: N=2 E=0 S=1 W=0
+  >> WEST button pressed | Queues now: N=2 E=0 S=1 W=1
+  >> WEST button pressed | Queues now: N=2 E=0 S=1 W=2
+[STEP   5] N/S Green [SWITCH]  | Clear:  3 | Queue: N=0 E=0 S=0 W=2 | Total:  2 | Infer: 5.76ms | RAM: 350.0MB CPU: 0.0% Temp: 33.1°C
+  >> EAST button pressed | Queues now: N=0 E=1 S=0 W=2
+  >> EAST button pressed | Queues now: N=0 E=2 S=0 W=2
+  >> NORTH button pressed | Queues now: N=1 E=2 S=0 W=2
+  >> NORTH button pressed | Queues now: N=2 E=2 S=0 W=2
+[STEP   6] N/S Green           | Clear:  2 | Queue: N=0 E=2 S=0 W=2 | Total:  4 | Infer: 10.19ms | RAM: 350.0MB CPU: 0.0% Temp: 33.6°C
+  >> SOUTH button pressed | Queues now: N=0 E=2 S=1 W=2
+  >> NORTH button pressed | Queues now: N=1 E=2 S=1 W=2
+  >> NORTH button pressed | Queues now: N=2 E=2 S=1 W=2
+  >> WEST button pressed | Queues now: N=2 E=2 S=1 W=3
+  >> EAST button pressed | Queues now: N=2 E=3 S=1 W=3
+[STEP   7] N/S Green           | Clear:  3 | Queue: N=0 E=3 S=0 W=3 | Total:  6 | Infer: 8.86ms | RAM: 350.0MB CPU: 0.0% Temp: 33.1°C
+  >> EAST button pressed | Queues now: N=0 E=4 S=0 W=3
+  >> SOUTH button pressed | Queues now: N=0 E=4 S=1 W=3
+  >> SOUTH button pressed | Queues now: N=0 E=4 S=2 W=3
+[STEP   8] E/W Green [SWITCH]  | Clear:  4 | Queue: N=0 E=2 S=2 W=1 | Total:  5 | Infer: 5.76ms | RAM: 350.0MB CPU: 0.0% Temp: 32.1°C
+  >> NORTH button pressed | Queues now: N=1 E=2 S=2 W=1
+  >> NORTH button pressed | Queues now: N=2 E=2 S=2 W=1
+[STEP   9] N/S Green [SWITCH]  | Clear:  4 | Queue: N=0 E=2 S=0 W=1 | Total:  3 | Infer: 5.72ms | RAM: 350.0MB CPU: 0.0% Temp: 34.0°C
+  >> NORTH button pressed | Queues now: N=1 E=2 S=0 W=1
+  >> EAST button pressed | Queues now: N=1 E=3 S=0 W=1
+[STEP  10] E/W Green [SWITCH]  | Clear:  3 | Queue: N=1 E=1 S=0 W=0 | Total:  2 | Infer: 5.72ms | RAM: 350.0MB CPU: 0.0% Temp: 34.0°C
+  >> SOUTH button pressed | Queues now: N=1 E=1 S=1 W=0
+[STEP  11] N/S Green [SWITCH]  | Clear:  2 | Queue: N=0 E=1 S=0 W=0 | Total:  1 | Infer: 6.83ms | RAM: 350.0MB CPU: 0.0% Temp: 32.1°C
+  [SAFETY OVERRIDE] PPO chose N/S, corrected to E/W
+[STEP  12] E/W Green [SWITCH]  | Clear:  1 | Queue: N=0 E=0 S=0 W=0 | Total:  0 | Infer: 5.58ms | RAM: 350.0MB CPU: 0.0% Temp: 33.1°C
+======================================================================
+SESSION 1 COMPLETE
+======================================================================
+Duration: 80.0s
+Steps: 12
+Arrived: 33 | Cleared: 33 | Throughput: 100.0%
+Phase changes: 9
+Final queue: N=0 E=0 S=0 W=0
+
+[SAVED] /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/ppo_event_driven_20251114_013644/session_1

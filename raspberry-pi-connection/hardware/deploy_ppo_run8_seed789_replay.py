@@ -1441,14 +1441,21 @@ def main():
         print("  Install: pip install psutil --break-system-packages")
     print()
 
-    # Mode selection
-    print("SELECT MODE:")
-    print("  1. PPO Event-Driven (runs until clear)")
-    print("  2. PPO Timed (60s)")
-    print("  3. Comparison (Fixed-Timing vs PPO, 60s each)")
-    print("  q. Quit\n")
+    # Mode selection with input validation loop
+    while True:
+        print("SELECT MODE:")
+        print("  1. PPO Event-Driven (runs until clear)")
+        print("  2. PPO Timed (60s)")
+        print("  3. Comparison (Fixed-Timing vs PPO, 60s each)")
+        print("  q. Quit\n")
 
-    choice = input("Choice: ").strip()
+        choice = input("Choice: ").strip()
+        
+        # Validate choice
+        if choice in ['1', '2', '3', 'q', 'Q', 'quit', 'Quit', 'QUIT']:
+            break
+        else:
+            print("\n[ERROR] Invalid choice. Please enter 1, 2, 3, or q\n")
 
     # Start terminal capture
     terminal_capture = TerminalCapture()
@@ -1478,9 +1485,6 @@ def main():
 
     elif choice.lower() in ['q', 'quit']:
         print("[EXIT]")
-
-    else:
-        print("[ERROR] Invalid choice")
 
     # Restore stdout
     sys.stdout = terminal_capture.terminal

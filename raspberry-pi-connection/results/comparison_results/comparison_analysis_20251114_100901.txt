@@ -1,0 +1,65 @@
+======================================================================
+COMPARISON ANALYSIS: FIXED-TIMING vs PPO RUN 8 SEED 789
+======================================================================
+
+Comparison Date: 2025-11-14 10:09:01
+Duration: 60s per controller
+Method: RECORD & REPLAY (identical traffic)
+Recorded Presses: 40 button events
+
+
+Test Folders:
+  Fixed-Timing: /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/fixed_timing_20251114_100629
+  PPO Agent:    /home/tpi4/Desktop/Traffic-Optimization-Capstone-Project/results/ppo_run8_seed789_20251114_100753
+
+======================================================================
+FAIR COMPARISON METHODOLOGY
+======================================================================
+
+✓ Phase 1: Fixed-Timing recorded all button presses with timestamps
+✓ Phase 2: PPO replayed the EXACT same button presses
+✓ Result: Both controllers processed IDENTICAL traffic patterns
+✓ This ensures a scientifically valid performance comparison
+
+======================================================================
+PERFORMANCE METRICS
+======================================================================
+
+1. THROUGHPUT
+  Fixed-Timing: 32/40 (80.0%)
+  PPO Agent:    33/40 (82.5%)
+  Difference:   +1 cars (+2.5%)
+
+2. ADAPTABILITY (Phase Changes)
+  Fixed-Timing: 5 changes
+  PPO Agent:    4 changes
+
+3. AVERAGE PHASE DURATION
+  Fixed-Timing: 12.02s per phase
+  PPO Agent:    14.93s per phase
+
+4. FINAL QUEUE STATES
+  Fixed-Timing: N=2 E=1 S=2 W=3
+  PPO Agent:    N=2 E=1 S=1 W=3
+
+5. PPO DECISION SPEED
+  Mean: 5.79ms
+  Max:  6.79ms
+  Min:  5.28ms
+  Real-time capability: 173× faster than human reaction
+
+======================================================================
+CONCLUSION
+======================================================================
+
+✓ PPO Agent cleared 1 more vehicles
+✓ PPO demonstrates adaptive real-time traffic management
+
+Model Information:
+  Champion: Run 8 Seed 789 (best of 5 seeds)
+  Validation: 72% win rate, p=0.0002
+  Reproducibility: CV = 1.3%
+
+======================================================================
+END OF COMPARISON
+======================================================================

@@ -1,0 +1,21 @@
+======================================================================
+PPO-Run8-Seed789 DEPLOYMENT REPORT
+======================================================================
+
+Duration: 114.7s
+Steps: 18
+Cars arrived: 53
+Cars cleared: 53
+Throughput: 100.0%
+Phase changes: 11
+
+Inference Performance:
+  Mean: 6.45ms
+  Max: 9.73ms
+  Min: 5.59ms
+
+System Resources:
+  Mean RAM: 350.0MB
+  Peak RAM: 350.0MB
+  Mean CPU: 0.6%
+  Peak Temp: 36.0°C

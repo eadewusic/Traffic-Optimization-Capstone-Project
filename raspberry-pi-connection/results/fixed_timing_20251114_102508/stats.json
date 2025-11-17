@@ -1,0 +1,24 @@
+{
+  "controller": "Fixed-Timing",
+  "session_start": "2025-11-14T10:25:08.670743",
+  "session_end": "2025-11-14T10:26:08.774740",
+  "duration_seconds": 60.103997,
+  "total_steps": 11,
+  "total_arrivals": 32,
+  "vehicles_cleared": 28,
+  "throughput_percent": 87.5,
+  "button_presses": {
+    "north": 7,
+    "south": 12,
+    "east": 6,
+    "west": 7
+  },
+  "final_queues": [
+    2.0,
+    2.0,
+    0.0,
+    0.0
+  ],
+  "phase_changes": 5,
+  "yellow_transitions": 5
+}
