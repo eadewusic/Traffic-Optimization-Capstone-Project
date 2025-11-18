@@ -1297,7 +1297,13 @@ Button Inputs & Cooling Fan Connections - (Active LOW with internal pull-down):
 
 #### Physical Setup Circuit
 
-![image](./images/actual-circuit-on-breadboard.JPG)
+- With LEDs OFF
+
+![image](./images/LEDs-OFF.JPG)
+
+- With LEDs ON
+
+![image](./images/LEDs-ON.JPG)
 
 ### **Hardware Setup (Raspberry Pi Only)**
 
