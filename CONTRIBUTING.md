@@ -4,8 +4,6 @@ Thank you for your interest in contributing to this project!
 
 This system was developed as part of my capstone project at African Leadership University, and I'm excited to collaborate with researchers, engineers, and urban planners to make it better.
 
----
-
 ## **My Vision for This Project**
 
 I built this system to address traffic congestion in Sub-Saharan African cities using affordable, accessible technology. My goals are:
@@ -15,8 +13,6 @@ I built this system to address traffic congestion in Sub-Saharan African cities 
 3. **Make it real** - Eventually see this deployed in actual cities to improve people's lives
 
 I welcome contributions that align with these goals!
-
----
 
 ## **How to Contribute**
 
@@ -36,8 +32,6 @@ This helps us:
 ### **For Small Changes:**
 
 Bug fixes, documentation improvements, typo corrections → just submit a pull request! No need to ask first.
-
----
 
 ## **Contribution Process**
 
@@ -62,8 +56,6 @@ git checkout -b feature/your-feature-name
 - Explain WHAT you changed and WHY
 - Reference any related GitHub Issues
 - Include test results if applicable
-
----
 
 ## **What We're Looking For**
 
@@ -101,16 +93,12 @@ git checkout -b feature/your-feature-name
 - Additional visualization tools
 - Translation to other languages
 
----
-
 ## **What We're NOT Looking For**
 
 - **Removing safety features** - The Safety Wrapper is non-negotiable
 - **Surveillance capabilities** - No facial recognition, license plate reading, or individual tracking
 - **Commercial closed-source forks** - See licensing section below
-- **Changes that violate ethical principles** - See EULA Section 10
-
----
+- **Changes that violate ethical principles** - See [EULA Section 10](https://docs.google.com/document/d/1wqHr0carY_SPtRfDgFwOrLlrvRmnz1RYWvpWwtktNes/edit?usp=sharing) 
 
 ## **Licensing & Attribution**
 
@@ -136,8 +124,6 @@ Research Paper: Sim-to-Real Transfer for Intelligent Traffic Control: Hardware-A
 
 Please don't remove this attribution or claim the original system as your own work. I put a lot of sleepless nights into this! 😅
 
----
-
 ## **Commercial Use & Deployment**
 
 ### **For Research & Education:**
@@ -155,8 +141,6 @@ I'm not trying to restrict usage, I just want to:
 2. Learn from real-world implementations
 3. Potentially collaborate to make it better
 4. Understand how the system performs at scale
-
----
 
 ## **Code of Conduct**
 
@@ -178,8 +162,6 @@ I'm not trying to restrict usage, I just want to:
 - Document your work
 - Give credit where due
 
----
-
 ## **Reporting Bugs**
 
 Found a bug? Please open a GitHub Issue with:
@@ -191,8 +173,6 @@ Found a bug? Please open a GitHub Issue with:
 - **Environment:** Raspberry Pi model, OS version, Python version
 - **Logs:** Any error messages or terminal output
 
----
-
 ## **Suggesting Enhancements**
 
 Have an idea? Open a GitHub Issue tagged with `enhancement` and describe:
@@ -201,8 +181,6 @@ Have an idea? Open a GitHub Issue tagged with `enhancement` and describe:
 - **Proposed Solution:** How would you solve it?
 - **Alternatives:** Any other approaches considered?
 - **Impact:** Who benefits? How does it improve the system?
-
----
 
 ## **Contact Me**
 
@@ -219,8 +197,6 @@ Have an idea? Open a GitHub Issue tagged with `enhancement` and describe:
 - Subject line: "Commercial Licensing Inquiry: [Your Organization]"
 
 I usually respond within 2-3 days. If you don't hear back, please follow up, sometimes emails get lost!
-
----
 
 ## **Thank You!**
 
