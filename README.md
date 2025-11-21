@@ -2225,6 +2225,14 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 Rationale: Provides patent protection and appropriate attribution requirements for significant research investment, while allowing commercial use with proper credit.
 
+**Before using, deploying, or modifying this system, please review:**
+
+| Document | Purpose | Link |
+|----------|---------|------|
+| **End-User License Agreement (EULA)** | Terms of use, deployment restrictions, contribution guidelines | [Read EULA](https://docs.google.com/document/d/1wqHr0carY_SPtRfDgFwOrLlrvRmnz1RYWvpWwtktNes/edit?usp=sharing) |
+| **Privacy Policy** | Data handling, security measures, compliance framework | [Read Privacy Policy](https://docs.google.com/document/d/1BzAlUTpPYfr22CTsre0Lzpy6w9OLcFFqweO8INaqPP4/edit?usp=sharing) |
+| **Contributing Guidelines** | How to propose changes and collaborate | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
 ## Contact
 
 If you have any questions, feedback, or collaboration requests, please feel free to reach out to me at [e.adewusi@alustudent.com](mailto:e.adewusi@alustudent.com) or [LinkedIn](https://www.linkedin.com/in/euniceadewusic/)
