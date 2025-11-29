@@ -37,7 +37,7 @@ print(f"   JSON/MD: {RESULTS_DIR}/")
 print(f"   Plots:   {VISUALIZATIONS_DIR}/")
 print("\n Measuring:")
 print("  Comparative Reward")
-print("  Vehicle Delay")
+print("  Average Waiting Time per Vehicle / Vehicle Delay (in simulation steps)")
 print("  Throughput")
 print("  Queue Management")
 print("  Computational Response Time (Inference Latency)")
@@ -52,7 +52,7 @@ class ComprehensiveEvaluator:
         
         episode_reward = 0
         episode_cleared = 0
-        episode_delay = 0
+        episode_total_waiting_time = 0  # Total steps all vehicles waited
         inference_times = []
         vehicle_arrivals = []  # (step, lane)
         
@@ -100,28 +100,30 @@ class ComprehensiveEvaluator:
                 
                 for i in range(min(int(cars_cleared), len(served))):
                     arrival_step, _ = served[i]
-                    wait_time = step - arrival_step
-                    episode_delay += wait_time
+                    # Calculate waiting time: steps from arrival to departure
+                    wait_time = step - arrival_step # In simulation steps (not seconds)
+                    episode_total_waiting_time += wait_time
                 
                 # Remove departed vehicles
                 departed = set(served[:int(cars_cleared)])
                 vehicle_arrivals = [v for v in vehicle_arrivals if v not in departed]
         
         final_queue = np.sum(env.queues)
-        avg_delay = episode_delay / episode_cleared if episode_cleared > 0 else 0
+        avg_waiting_time = episode_total_waiting_time / episode_cleared if episode_cleared > 0 else 0
         avg_inference_time = np.mean(inference_times)
         
         return {
             'reward': float(episode_reward),
             'throughput': int(episode_cleared),
-            'avg_delay': float(avg_delay),
-            'total_delay': float(episode_delay),
+            'avg_waiting_time_per_vehicle': float(avg_waiting_time),
+            'total_waiting_time': float(episode_total_waiting_time),
+            'avg_delay': float(avg_waiting_time),
+            'total_delay': float(episode_total_waiting_time),
             'final_queue': float(final_queue),
             'avg_inference_time_ms': float(avg_inference_time),
             'max_inference_time_ms': float(np.max(inference_times)),
             'min_inference_time_ms': float(np.min(inference_times))
         }
-
 
 # Load model
 print("\n Loading Run 8 Seed 789 model...")
@@ -202,8 +204,8 @@ for scenario_name, initial_queues in scenarios:
         'baseline_inference_ms': baseline_avg_inference
     })
     
-    print(f"   PPO: {ppo_avg_reward:.1f} reward, {ppo_avg_delay:.1f} delay, {ppo_avg_inference:.2f}ms")
-    print(f"   Baseline: {baseline_avg_reward:.1f} reward, {baseline_avg_delay:.1f} delay\n")
+    print(f"   PPO: {ppo_avg_reward:.1f} reward, {ppo_avg_delay:.1f} vehicle delay/wait time (steps), {ppo_avg_inference:.2f}ms")
+    print(f"   Baseline: {baseline_avg_reward:.1f} reward, {baseline_avg_delay:.1f} delay/wait time (steps)\n")
 
 # OVERALL STATISTICS
 print("\n" + "="*70)
@@ -218,7 +220,7 @@ overall_metrics = {
         'ppo': np.mean([r['reward'] for r in ppo_results]),
         'baseline': np.mean([r['reward'] for r in baseline_results])
     },
-    'Vehicle Delay (steps)': {
+    'Average Waiting Time per Vehicle (steps)': {
         'ppo': np.mean([r['avg_delay'] for r in ppo_results]),
         'baseline': np.mean([r['avg_delay'] for r in baseline_results])
     },
@@ -242,7 +244,7 @@ reward_t, reward_p = stats.ttest_ind(
     [r['reward'] for r in baseline_results]
 )
 
-delay_t, delay_p = stats.ttest_ind(
+waiting_time_t, waiting_time_p = stats.ttest_ind(
     [r['avg_delay'] for r in ppo_results],
     [r['avg_delay'] for r in baseline_results]
 )
@@ -263,7 +265,7 @@ for metric_name, values in overall_metrics.items():
 
 print(f"\n Statistical Tests:")
 print(f"  Reward: t={reward_t:.3f}, p={reward_p:.4f}")
-print(f"  Delay:  t={delay_t:.3f}, p={delay_p:.4f}")
+print(f"  Delay:  t={waiting_time_t:.3f}, p={waiting_time_p:.4f}")
 
 print(f"\n Response Time:")
 print(f"  PPO Mean:    {np.mean(ppo_inference_times):.2f} ms")
@@ -281,7 +283,7 @@ json_data = {
     'overall_metrics': overall_metrics,
     'statistical_tests': {
         'reward': {'t_statistic': reward_t, 'p_value': reward_p},
-        'delay': {'t_statistic': delay_t, 'p_value': delay_p}
+        'delay': {'t_statistic': waiting_time_t, 'p_value': waiting_time_p}
     },
     'response_time': {
         'ppo_mean_ms': np.mean(ppo_inference_times),
@@ -321,7 +323,7 @@ with open(md_path, 'w') as f:
     
     f.write("\n## Statistical Significance\n\n")
     f.write(f"- **Reward:** t={reward_t:.3f}, p={reward_p:.4f}\n")
-    f.write(f"- **Delay:** t={delay_t:.3f}, p={delay_p:.4f}\n\n")
+    f.write(f"- **Delay:** t={waiting_time_t:.3f}, p={waiting_time_p:.4f}\n\n")
     
     f.write("## Computational Response Time\n\n")
     f.write(f"- **PPO Mean Inference:** {np.mean(ppo_inference_times):.2f} ms\n")
@@ -345,12 +347,12 @@ with open(md_path, 'w') as f:
                           overall_metrics['Comparative Reward']['baseline']) / 
                          abs(overall_metrics['Comparative Reward']['baseline']) * 100)
     
-    delay_reduction = ((overall_metrics['Vehicle Delay (steps)']['baseline'] - 
-                       overall_metrics['Vehicle Delay (steps)']['ppo']) / 
-                      overall_metrics['Vehicle Delay (steps)']['baseline'] * 100)
+    delay_reduction = ((overall_metrics['Average Waiting Time per Vehicle (steps)']['baseline'] - 
+                       overall_metrics['Average Waiting Time per Vehicle (steps)']['ppo']) / 
+                      overall_metrics['Average Waiting Time per Vehicle (steps)']['baseline'] * 100)
     
     f.write(f"1. **Reward Performance:** {reward_improvement:+.1f}% improvement (p={reward_p:.4f})\n")
-    f.write(f"2. **Delay Reduction:** {delay_reduction:+.1f}% (p={delay_p:.4f})\n")
+    f.write(f"2. **Delay Reduction:** {delay_reduction:+.1f}% (p={waiting_time_p:.4f})\n")
     f.write(f"3. **Response Time:** {np.mean(ppo_inference_times):.2f}ms average, real-time capable\n")
     f.write(f"4. **Throughput:** {overall_metrics['Throughput (cars)']['ppo']:.1f} vs {overall_metrics['Throughput (cars)']['baseline']:.1f} cars\n")
     f.write(f"5. **Queue Management:** {overall_metrics['Final Queue Length']['ppo']:.1f} vs {overall_metrics['Final Queue Length']['baseline']:.1f} final queue\n\n")
@@ -512,7 +514,7 @@ print(f"          - delay_analysis.png")
 
 print("\n Key Results:")
 print(f"   Reward:       {reward_improvement:+.1f}% (p={reward_p:.4f})")
-print(f"   Delay:        {delay_reduction:+.1f}% (p={delay_p:.4f})")
+print(f"   Delay:        {delay_reduction:+.1f}% (p={waiting_time_p:.4f})")
 print(f"   Throughput:   {overall_metrics['Throughput (cars)']['ppo']:.1f} vs {overall_metrics['Throughput (cars)']['baseline']:.1f}")
 print(f"   Response:     {np.mean(ppo_inference_times):.2f}ms (real-time ✓)")
 
