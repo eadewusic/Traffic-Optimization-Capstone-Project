@@ -6,30 +6,47 @@ Tests all 4 LED modules (North, East, South, West) by cycling through
 each color (Red, Yellow, Green) sequentially to verify GPIO connections
 and LED functionality on Raspberry Pi.
 
-LED MODULES (12 outputs):
-  North Module:
-    Red:    GPIO 16 (Pin 36)  → Module R pin
-    Yellow: GPIO 20 (Pin 38)  → Module Y pin
-    Green:  GPIO 21 (Pin 40)  → Module G pin
-    GND  →  Breadboard 2 (north traffic module) GND rail
+HARDWARE ARCHITECTURE: 4-Breadboard Modular Design
+  - Each breadboard represents one intersection direction
+  - Physical cross-pattern layout mirrors actual 4-way intersection
+  - One LED module + one button per breadboard
+  - Common GND rail connecting all modules to Pi
+
+BREADBOARD 1 (NORTH - Top position):
+  LED Module:
+    Red:    GPIO 16 (Pin 36)
+    Yellow: GPIO 20 (Pin 38)
+    Green:  GPIO 21 (Pin 40)
+  Button: GPIO 9 (Pin 21)
   
-  East Module:
-    Red:    GPIO 5  (Pin 29) → Module R pin
-    Yellow: GPIO 6  (Pin 31) → Module Y pin
-    Green:  GPIO 13 (Pin 33) → Module G pin
-    GND  →  Breadboard 2 (north traffic module) GND rail
+BREADBOARD 2 (EAST - Right position):
+  LED Module:
+    Red:    GPIO 5  (Pin 29)
+    Yellow: GPIO 6  (Pin 31)
+    Green:  GPIO 13 (Pin 33)
+  Button: GPIO 10 (Pin 19)
   
-  South Module:
-    Red:    GPIO 23 (Pin 16) → Module R pin
-    Yellow: GPIO 24 (Pin 18) → Module Y pin
-    Green:  GPIO 25 (Pin 22) → Module G pin
-    GND  →  Breadboard 2 (north traffic module) GND rail
+BREADBOARD 3 (SOUTH - Bottom position):
+  LED Module:
+    Red:    GPIO 23 (Pin 16)
+    Yellow: GPIO 24 (Pin 18)
+    Green:  GPIO 25 (Pin 22)
+  Button: GPIO 22 (Pin 15)
   
-  West Module:
-    Red:    GPIO 14 (Pin 8)  → Module R pin
-    Yellow: GPIO 4 (Pin 7)   → Module Y pin
-    Green:  GPIO 18 (Pin 12) → Module G pin
-    GND  →  Breadboard 2 (north traffic module) GND rail
+BREADBOARD 4 (WEST - Left position):
+  LED Module:
+    Red:    GPIO 14 (Pin 8)
+    Yellow: GPIO 4  (Pin 7)
+    Green:  GPIO 18 (Pin 12)
+  Button: GPIO 17 (Pin 11)
+
+RASPBERRY PI 4 Model B 2GB RAM:
+  GPIO Connections: 16 pins (4 buttons + 12 LEDs)
+  Power: 5V/3A USB-C
+  Case: Red/white protective enclosure with cooling fan
+  
+GROUND CONNECTIONS:
+  Common GND rail connects all 4 breadboards to Pi GND pins
 
 COOLING FAN (from Pi case):
   Fan +5V:  Pin 4 (5V Power)
